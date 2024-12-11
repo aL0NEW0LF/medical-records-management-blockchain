@@ -1,5 +1,8 @@
 import tkinter as tk
 import customtkinter as ctk
+from tkinter import messagebox
+import patient_frame as pf
+import doctor_frame as df
 
 
 
@@ -21,4 +24,6 @@ class logdFrame(ctk.CTkFrame):
         self.register_button = ctk.CTkButton(self, text="Login")
         self.register_button.place(relx=0.5, rely=0.48, anchor="center")
 
+        
+        
         

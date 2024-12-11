@@ -50,9 +50,9 @@ class regdFrame(ctk.CTkFrame):
         
 
         #Contact Information Field
-        self.contact_label = ctk.CTkLabel(self, font=('Arial', 17), text="Dotor address : ")
+        self.contact_label = ctk.CTkLabel(self, font=('Arial', 17), text="Licence Number: ")
         self.contact_label.place(anchor="center", relx=0.388, rely=0.7)
-        self.contact_entry = ctk.CTkEntry(self, width=190, height=30, placeholder_text="0x.......................")
+        self.contact_entry = ctk.CTkEntry(self, width=190, height=30, placeholder_text="Licence Number")
         self.contact_entry.place(relx=0.56, rely=0.7, anchor="center")
 
         # Register Button
