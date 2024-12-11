@@ -9,5 +9,4 @@ def test():
     print(w3.eth.accounts)
     # Print block number
 
-
 test()
