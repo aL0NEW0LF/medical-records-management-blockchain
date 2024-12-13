@@ -1,1 +1,0 @@
-command=lambda:self.show_frame("login",lpf.logpFrame)

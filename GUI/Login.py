@@ -37,7 +37,7 @@ class LoginFrame(ctk.CTkFrame):
         self.LABEL8_copy.pack(fill="x")
         self.ENTRY9 = ctk.CTkEntry(master=self.FRAME5, placeholder_text="0x"+40*"0", height=35, corner_radius=3, text_color=("gray10", "#FFFFFF"), width=222)
         self.ENTRY9.pack(fill="x")
-        self.BUTTON16 = ctk.CTkButton(master=self.FRAME2, text="Login", height=35, text_color=("gray98", "#FFFFFF"), fg_color=("#8651ff", "#8651ff"), hover_color=("#6940c9", "#6940c9"), width=500, corner_radius=3, command=self.login_patient)
+        self.BUTTON16 = ctk.CTkButton(master=self.FRAME2, text="Login", height=35, text_color=("gray98", "#FFFFFF"), fg_color=("#8651ff", "#8651ff"), hover_color=("#6940c9", "#6940c9"), width=500, corner_radius=3, command=self.login)
         self.BUTTON16.pack(fill="x")
         self.FRAME17 = ctk.CTkFrame(master=self.FRAME2, fg_color="transparent")
         self.FRAME17.pack(pady=(10, 0), fill="x")
@@ -46,7 +46,7 @@ class LoginFrame(ctk.CTkFrame):
         self.BUTTON19 = ctk.CTkButton(master=self.FRAME17, text="Sign Up", width=70, fg_color="transparent", hover=False, height=0, text_color=("#000000", "#FFFFFF"), command=lambda:self.controller.show_main_frame(rg.RegisterFrame))
         self.BUTTON19.pack(side="left")
     
-    def login_patient(self):
+    def login(self):
         address = self.ENTRY9.get()
         nonce = random.randint(1000000, 99999999999)
         message = f"Login with nonce: {nonce}"
