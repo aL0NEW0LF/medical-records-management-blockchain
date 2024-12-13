@@ -2,6 +2,7 @@ import tkinter as tk
 import customtkinter as ctk
 from tkinter import messagebox
 import re
+import loginp_frame as lf
 
 
 
@@ -14,38 +15,38 @@ class regFrame(ctk.CTkFrame):
     
         # Patient Registration Form
         self.tts_label = ctk.CTkLabel(self, font=('Arial', 30), text="Patient Authantification")
-        self.tts_label.place(anchor="center", relx=0.5, rely=0.07)
+        self.tts_label.place(anchor="center", relx=0.5, rely=0.21)
 
         # Name Field
         self.name_label = ctk.CTkLabel(self, font=('Arial', 17), text="Full name : ")
-        self.name_label.place(anchor="center", relx=0.388, rely=0.2)
+        self.name_label.place(anchor="center", relx=0.388, rely=0.3)
         self.name_entry = ctk.CTkEntry(self, width=190, height=30, placeholder_text="Full name")
-        self.name_entry.place(relx=0.56, rely=0.21, anchor="center")
+        self.name_entry.place(relx=0.56, rely=0.31, anchor="center")
 
         # Date of Birth Field
         self.dob_label = ctk.CTkLabel(self, font=('Arial', 17), text="Date of Birth : ")
-        self.dob_label.place(anchor="center", relx=0.388, rely=0.3)
+        self.dob_label.place(anchor="center", relx=0.388, rely=0.4)
         self.dob_entry = ctk.CTkEntry(self, width=190, height=30, placeholder_text="YYYY-MM-DD")
-        self.dob_entry.place(relx=0.56, rely=0.31, anchor="center")
+        self.dob_entry.place(relx=0.56, rely=0.41, anchor="center")
 
         # Contact Information Field
         self.contact_label = ctk.CTkLabel(self, font=('Arial', 17), text="Contact Information : ")
-        self.contact_label.place(anchor="center", relx=0.388, rely=0.4)
+        self.contact_label.place(anchor="center", relx=0.388, rely=0.5)
         self.contact_entry = ctk.CTkEntry(self, width=190, height=30, placeholder_text="06xxxxxxxx")
-        self.contact_entry.place(relx=0.56, rely=0.41, anchor="center")
+        self.contact_entry.place(relx=0.56, rely=0.51, anchor="center")
 
         # Gender Selection
         self.gender_label = ctk.CTkLabel(self, font=('Arial', 17), text="Gender : ")
-        self.gender_label.place(anchor="center", relx=0.388, rely=0.5)
+        self.gender_label.place(anchor="center", relx=0.388, rely=0.6)
         self.gender_optMenu = ctk.CTkOptionMenu(self, width=190, height=30, values=["Male", "Female"])
         self.gender_optMenu.configure(fg_color="#200E3A")
-        self.gender_optMenu.place(relx=0.56, rely=0.5, anchor="center")
+        self.gender_optMenu.place(relx=0.56, rely=0.6, anchor="center")
 
-        #Contact Information Field
-        self.contact_label = ctk.CTkLabel(self, font=('Arial', 17), text="Dotor address : ")
-        self.contact_label.place(anchor="center", relx=0.388, rely=0.6)
-        self.contact_entry = ctk.CTkEntry(self, width=190, height=30, placeholder_text="0x.......................")
-        self.contact_entry.place(relx=0.56, rely=0.6, anchor="center")
+        # #Contact Information Field
+        # self.contact_label = ctk.CTkLabel(self, font=('Arial', 17), text="Dotor address : ")
+        # self.contact_label.place(anchor="center", relx=0.388, rely=0.6)
+        # self.contact_entry = ctk.CTkEntry(self, width=190, height=30, placeholder_text="0x.......................")
+        # self.contact_entry.place(relx=0.56, rely=0.6, anchor="center")
 
         # Register Button
         self.register_button = ctk.CTkButton(self, text="Register", command=self.register_patient)
@@ -87,9 +88,13 @@ class regFrame(ctk.CTkFrame):
         if not self.validate_phone(contact):
             messagebox.showerror("Invalid Phone Number", "Please enter a valid phone number.")
             return
-
-        # Example logic to register the patient (you can integrate blockchain logic here)
-        print(f"Name: {name}, Date of Birth: {dob}, Contact Info: {contact}, Gender: {gender}")
         
-        # Example message box for confirmation
         messagebox.showinfo("Patient Registration", f"Patient {name} registered successfully!")
+
+        current_frame = self.controller.frames[lf.logpFrame]
+        current_frame.configure(fg_color="#101010")
+        current_frame.tkraise()
+        
+
+         # Example logic to register the patient (you can integrate blockchain logic here)
+        print(f"Name: {name}, Date of Birth: {dob}, Contact Info: {contact}, Gender: {gender}")

@@ -2,6 +2,7 @@ import tkinter as tk
 import customtkinter as ctk
 from tkinter import messagebox
 import re
+import logind_frame as lf
 
 
 
@@ -56,7 +57,7 @@ class regdFrame(ctk.CTkFrame):
         self.contact_entry.place(relx=0.56, rely=0.7, anchor="center")
 
         # Register Button
-        self.register_button = ctk.CTkButton(self, text="Register", command=self.register_patient)
+        self.register_button = ctk.CTkButton(self, text="Register", command=self.register_doctor)
         self.register_button.place(relx=0.5, rely=0.8, anchor="center")
 
     def validate_dob(self, dob):
@@ -79,7 +80,7 @@ class regdFrame(ctk.CTkFrame):
             return False
         return True
 
-    def register_patient(self):
+    def register_doctor(self):
         # Collect data from the form
         name = self.name_entry.get()
         dob = self.dob_entry.get()
@@ -91,13 +92,16 @@ class regdFrame(ctk.CTkFrame):
             messagebox.showerror("Invalid Date of Birth", "Please enter a valid date in the format YYYY-MM-DD.")
             return
         
-        # Validate Phone Number
-        if not self.validate_phone(contact):
-            messagebox.showerror("Invalid Phone Number", "Please enter a valid phone number.")
-            return
-
+        # # Validate Phone Number
+        # if not self.validate_phone(contact):
+        #     messagebox.showerror("Invalid Phone Number", "Please enter a valid phone number.")
+        #     return
+        
         # Example logic to register the patient (you can integrate blockchain logic here)
         print(f"Name: {name}, Date of Birth: {dob}, Contact Info: {contact}, Gender: {gender}")
         
         # Example message box for confirmation
-        messagebox.showinfo("Patient Registration", f"Patient {name} registered successfully!")
+        messagebox.showinfo("Patient Registration", f"Doctor {name} registered successfully!")
+        current_frame = self.controller.frames[lf.logdFrame]
+        current_frame.configure(fg_color="#101010")
+        current_frame.tkraise()

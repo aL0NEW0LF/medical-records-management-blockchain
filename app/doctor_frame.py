@@ -1,6 +1,6 @@
 import tkinter as tk
 import customtkinter as ctk
-
+import logind_frame as lf
 
 class docFrame(ctk.CTkFrame):
     def __init__(self, parent, controller):
@@ -11,5 +11,13 @@ class docFrame(ctk.CTkFrame):
         self.svmsmote.place(anchor="center",relx=0.5, rely=0.07)
         
        
-        
+        # Register Button
+        self.register_button = ctk.CTkButton(self, text="Log Out", command=lambda:self.log_out(lf.logdFrame))
+        self.register_button.place(relx=0.92, rely=0.95, anchor="center")
+            
+    def log_out(self, cont):
+                current_frame = self.controller.frames[cont]
+                current_frame.configure(fg_color="#101010")
+                current_frame.tkraise()
+ 
     

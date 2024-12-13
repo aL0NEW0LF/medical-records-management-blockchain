@@ -30,31 +30,9 @@ class auditFrame(ctk.CTkFrame):
         ctk.CTkFrame.__init__(self, parent, fg_color='transparent', corner_radius=20)
         
         self.tts_label = ctk.CTkLabel(self, font=('Arial', 30), text="Hamid")
-        self.tts_label.place(anchor="center", relx=0.5, rely=0.07)
+        self.tts_label.place(anchor="center", relx=0.5, rely=0.2)
 
-        # First Name Field
-        self.name_label = ctk.CTkLabel(self, font=('Arial', 17), text="hamid: ")
-        self.name_label.place(anchor="center", relx=0.177, rely=0.2)
-        self.name_entry = ctk.CTkEntry(self, width=190, height=30, placeholder_text="hamid")
-        self.name_entry.place(relx=0.35, rely=0.21, anchor="center")
-
-        # Last Name Field
-        self.dob_label = ctk.CTkLabel(self, font=('Arial', 17), text="hamid: ")
-        self.dob_label.place(anchor="center", relx=0.177, rely=0.3)
-        self.dob_entry = ctk.CTkEntry(self, width=190, height=30, placeholder_text="hamid")
-        self.dob_entry.place(relx=0.35, rely=0.31, anchor="center")
-
-        # Specialty Field
-        self.specialty_label = ctk.CTkLabel(self, font=('Arial', 17), text="hamid: ")
-        self.specialty_label.place(anchor="center", relx=0.177, rely=0.4)
-        self.specialty_entry = ctk.CTkEntry(self, width=190, height=30, placeholder_text="hamid")
-        self.specialty_entry.place(relx=0.35, rely=0.41, anchor="center")
-
-        # Experience Field
-        self.experience_label = ctk.CTkLabel(self, font=('Arial', 17), text="hamid: ")
-        self.experience_label.place(anchor="center", relx=0.177, rely=0.5)
-        self.experience_entry = ctk.CTkEntry(self, width=190, height=30, placeholder_text="hamid")
-        self.experience_entry.place(relx=0.35, rely=0.51, anchor="center")
+        
 
       
     
