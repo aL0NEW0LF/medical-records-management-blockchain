@@ -67,6 +67,10 @@ contract PatientContract is ReentrancyGuard {
         emit PatientRegistered(msg.sender, _fullName);
     }
     
+    function isPatientRegistered(address _patientAddress) external view returns (bool) {
+        return patients[_patientAddress].isRegistered;
+    }
+
     // Grant Access to Doctor
     function grantDoctorAccess(address _doctorAddress) external nonReentrant {
         require(patients[msg.sender].isRegistered, "Patient not registered");

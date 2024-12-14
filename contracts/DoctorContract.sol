@@ -19,7 +19,7 @@ contract DoctorContract is ReentrancyGuard {
         string licenseNumber;
         bool isRegistered;
     }
-    
+
     // Patient Contract Reference
     PatientContract public patientContract;
     
@@ -66,6 +66,10 @@ contract DoctorContract is ReentrancyGuard {
         emit DoctorRegistered(msg.sender, _fullName, _speciality);
     }
     
+    function isDoctorRegistered(address _doctorAddress) external view returns (bool) {
+        return doctors[_doctorAddress].isRegistered;
+    }
+
     // Upload Medical File for a Patient
     function uploadMedicalFile(
         address _patientAddress, 
