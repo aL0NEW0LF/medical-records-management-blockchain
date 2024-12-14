@@ -2,8 +2,6 @@ import customtkinter as ctk
 import tkinter as tk
 from PIL import Image
 from web3 import Web3
-import dotenv
-import os
 import Login as lg
 import re
 from datetime import datetime
@@ -145,20 +143,9 @@ class RegisterFrame(ctk.CTkFrame):
         self.BUTTON4 = ctk.CTkButton(master=self.FRAME19, text="Login", width=70, fg_color="transparent", hover=False, height=0, text_color=("#000000", "#FFFFFF"), command=lambda:self.controller.show_main_frame(lg.LoginFrame))
         self.BUTTON4.pack(side="left")
     
-        dotenv.load_dotenv()
-        self.web3 = Web3(Web3.HTTPProvider(os.getenv("RPC_URL")))
-        self.doctor_contract = self.load_doctor_contract()
-        self.patient_contract = self.load_patient_contract()
-    
-    def load_doctor_contract(self):
-        contract_abi = os.getenv("DOCTOR_CONTRACT_ABI")
-        contract_address = self.web3.to_checksum_address(os.getenv("DOCTOR_CONTRACT_ADDRESS"))
-        return self.web3.eth.contract(address=contract_address, abi=contract_abi)
-    
-    def load_patient_contract(self):
-        contract_abi = os.getenv("PATIENT_CONTRACT_ABI")
-        contract_address = self.web3.to_checksum_address(os.getenv("PATIENT_CONTRACT_ADDRESS"))
-        return self.web3.eth.contract(address=contract_address, abi=contract_abi)
+        self.web3 = self.controller.web3
+        self.doctor_contract = self.controller.doctor_contract
+        self.patient_contract = self.controller.patient_contract
     
     def validate_private_key(self, private_key):
         if not private_key or not private_key.startswith("0x") or len(private_key) != 66:
@@ -169,37 +156,39 @@ class RegisterFrame(ctk.CTkFrame):
     def verify_credentials(self, address, name, dob, phone, gender):
         if address == "" or not Web3.is_address(address):
             tk.messagebox.showerror("Error", "Please enter a valid Ethereum address")
-            return
-        if name == "" or not name.isalpha():
+            return False
+        if name == "" or re.match(r"/^[a-z ,.'-]+$/i", name):
             tk.messagebox.showerror("Error", "Please enter your full name")
-            return
+            return False
         if dob == "" or not re.match(r'\d{1,2}\/\d{1,2}\/\d{4}', dob):
             tk.messagebox.showerror("Error", "Please enter date of birth in DD/MM/YYYY format")
-            return
+            return False
         try:
             day, month, year = map(int, dob.split('/'))
             if month < 1 or month > 12:
                 tk.messagebox.showerror("Error", "Month must be between 1 and 12")
-                return
+                return False
             if day < 1 or day > 31:
                 tk.messagebox.showerror("Error", "Day must be between 1 and 31")
-                return
+                return False
             birth_date = datetime(year, month, day)
             age = (datetime.now() - birth_date).days / 365.25
             if age < 18:
                 tk.messagebox.showerror("Error", "You must be at least 18 years old")
-                return
+                return False
         except ValueError:
             tk.messagebox.showerror("Error", "Invalid date format")
-            return
+            return False
         
         if phone == "" or not phone.isdigit() or len(phone) < 10:
             tk.messagebox.showerror("Error", "Please enter a valid phone number")
-            return
+            return False
         
         if gender == "":
             tk.messagebox.showerror("Error", "Please select a gender")
-            return
+            return False
+        
+        return True
     
     def get_doctor_unsigned_tx(self, address, name, dob, phone, gender, specialization, license):
         try:
@@ -229,7 +218,10 @@ class RegisterFrame(ctk.CTkFrame):
         specialization = self.ENTRY5.get()
         license = self.ENTRY6.get()
         
-        self.verify_credentials(address, name, dob, phone, gender)
+        valid = self.verify_credentials(address, name, dob, phone, gender)
+        
+        if valid == False:
+            return
         
         if specialization == "":
             tk.messagebox.showerror("Error", "Please enter your specialization")
@@ -239,7 +231,7 @@ class RegisterFrame(ctk.CTkFrame):
             tk.messagebox.showerror("Error", "Please enter a valid license number")
             return
         
-        raw_tx = self.get_doctor_unsigned_tx(address, name, dob, phone, gender, specialization, license)
+        raw_tx = self.get_doctor_unsigned_tx(address, "Dr. "+name, dob, phone, gender, specialization, license)
         
         dialog = ctk.CTkInputDialog(text="Please Enter your private key to sign the transaction", title="Private Key", button_text_color=("gray98", "#FFFFFF"), button_fg_color=("#8651ff", "#8651ff"))
         private_key = dialog.get_input()
@@ -252,6 +244,7 @@ class RegisterFrame(ctk.CTkFrame):
             receipt = self.web3.eth.wait_for_transaction_receipt(tx_hash)
             if receipt['status'] == 1:
                 tk.messagebox.showinfo("Success", "Doctor registration successful!")
+                self.controller.show_main_frame(lg.LoginFrame)
             else:
                 tk.messagebox.showerror("Error", "Transaction failed")
         except Exception as e:
@@ -303,6 +296,7 @@ class RegisterFrame(ctk.CTkFrame):
             receipt = self.web3.eth.wait_for_transaction_receipt(tx_hash)
             if receipt['status'] == 1:
                 tk.messagebox.showinfo("Success", "Patient registration successful!")
+                self.controller.show_main_frame(lg.LoginFrame)
             else:
                 tk.messagebox.showerror("Error", "Transaction failed")
                 
