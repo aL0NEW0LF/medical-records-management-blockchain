@@ -3,15 +3,10 @@ import tkinter as tk
 from PIL import Image
 from web3 import Web3
 import dotenv
-import random
-import json
 import os
-from eth_account.messages import encode_defunct
-from hexbytes import HexBytes
 import Login as lg
 import re
 from datetime import datetime
-from eth_utils import encode_hex
 
 class RegisterFrame(ctk.CTkFrame):
     def __init__(self, parent, controller):
@@ -141,7 +136,7 @@ class RegisterFrame(ctk.CTkFrame):
         self.LABEL21.pack(fill="x")
         self.COMBOBOX2 = ctk.CTkComboBox(master=self.FRAME18, values=["Male", "Female"], height=35, corner_radius=3, text_color=("gray10", "#FFFFFF"),state="readonly")
         self.COMBOBOX2.pack(fill="x")
-        self.BUTTON3 = ctk.CTkButton(master=self.FRAME13, text="Register", height=35, text_color=("gray98", "#FFFFFF"), fg_color=("#8651ff", "#8651ff"), hover_color=("#6940c9", "#6940c9"), width=500, corner_radius=3)
+        self.BUTTON3 = ctk.CTkButton(master=self.FRAME13, text="Register", height=35, text_color=("gray98", "#FFFFFF"), fg_color=("#8651ff", "#8651ff"), hover_color=("#6940c9", "#6940c9"), width=500, corner_radius=3, command=self.register_patient)
         self.BUTTON3.pack(pady=(20, 0), fill="x")
         self.FRAME19 = ctk.CTkFrame(master=self.FRAME13, fg_color="transparent")
         self.FRAME19.pack(pady=(10, 0), fill="x")
@@ -150,6 +145,26 @@ class RegisterFrame(ctk.CTkFrame):
         self.BUTTON4 = ctk.CTkButton(master=self.FRAME19, text="Login", width=70, fg_color="transparent", hover=False, height=0, text_color=("#000000", "#FFFFFF"), command=lambda:self.controller.show_main_frame(lg.LoginFrame))
         self.BUTTON4.pack(side="left")
     
+        dotenv.load_dotenv()
+        self.web3 = Web3(Web3.HTTPProvider(os.getenv("RPC_URL")))
+        self.doctor_contract = self.load_doctor_contract()
+        self.patient_contract = self.load_patient_contract()
+    
+    def load_doctor_contract(self):
+        contract_abi = os.getenv("DOCTOR_CONTRACT_ABI")
+        contract_address = self.web3.to_checksum_address(os.getenv("DOCTOR_CONTRACT_ADDRESS"))
+        return self.web3.eth.contract(address=contract_address, abi=contract_abi)
+    
+    def load_patient_contract(self):
+        contract_abi = os.getenv("PATIENT_CONTRACT_ABI")
+        contract_address = self.web3.to_checksum_address(os.getenv("PATIENT_CONTRACT_ADDRESS"))
+        return self.web3.eth.contract(address=contract_address, abi=contract_abi)
+    
+    def validate_private_key(self, private_key):
+        if not private_key or not private_key.startswith("0x") or len(private_key) != 66:
+            tk.messagebox.showerror("Error", "Invalid private key.")
+            return False
+        return True
     
     def verify_credentials(self, address, name, dob, phone, gender):
         if address == "" or not Web3.is_address(address):
@@ -186,30 +201,27 @@ class RegisterFrame(ctk.CTkFrame):
             tk.messagebox.showerror("Error", "Please select a gender")
             return
     
-    def get_unsigned_tx(self, adress, name, dob, phone, gender, specialization, license):
+    def get_doctor_unsigned_tx(self, address, name, dob, phone, gender, specialization, license):
         try:
-            web3 = Web3(Web3.HTTPProvider(os.getenv("RPC_URL")))
-            dotenv.load_dotenv()
-            contract_abi = os.getenv("DOCTOR_CONTRACT_ABI")
-            contract_address = web3.to_checksum_address(os.getenv("DOCTOR_CONTRACT_ADDRESS"))
-            contract = web3.eth.contract(address=contract_address, abi=contract_abi)
-            checksum_adress = web3.to_checksum_address(adress.lower())
-            tx = contract.functions.registerDoctor(
+            checksum_address = self.web3.to_checksum_address(address.lower())
+            tx = self.doctor_contract.functions.registerDoctor(
                 name, dob, phone, gender, specialization, license
             ).build_transaction({
-                'from': checksum_adress,
-                'nonce': web3.eth.get_transaction_count(checksum_adress),
-                'gas': 2000000,
-                'gasPrice': web3.to_wei('10', 'gwei')
+                'from': checksum_address,
+                'nonce': self.web3.eth.get_transaction_count(checksum_address),
+                'gas': self.doctor_contract.functions.registerDoctor(
+                    name, dob, phone, gender, specialization, license
+                ).estimate_gas({'from': checksum_address}),
+                'gasPrice': self.web3.eth.gas_price
             })
-            print(encode_hex(tx['data']))
-            return encode_hex(tx['data'])
+            
+            return tx
         except Exception as e:
             tk.messagebox.showerror("Error", f"Failed to create transaction: {str(e)}")
             return None
         
     def register_doctor(self):
-        adress = self.ENTRY1.get()
+        address = self.ENTRY1.get()
         name = self.ENTRY2.get()
         dob = self.ENTRY3.get()
         phone = self.ENTRY4.get()
@@ -217,7 +229,7 @@ class RegisterFrame(ctk.CTkFrame):
         specialization = self.ENTRY5.get()
         license = self.ENTRY6.get()
         
-        self.verify_credentials(adress, name, dob, phone, gender)
+        self.verify_credentials(address, name, dob, phone, gender)
         
         if specialization == "":
             tk.messagebox.showerror("Error", "Please enter your specialization")
@@ -227,37 +239,74 @@ class RegisterFrame(ctk.CTkFrame):
             tk.messagebox.showerror("Error", "Please enter a valid license number")
             return
         
-        raw_tx = self.get_unsigned_tx(adress, name, dob, phone, gender, specialization, license)
+        raw_tx = self.get_doctor_unsigned_tx(address, name, dob, phone, gender, specialization, license)
         
-        if raw_tx:
-            # Show transaction data to user
-            tk.messagebox.showinfo(
-                "Sign Transaction", 
-                f"Please sign this transaction in MyCrypto:\n\n{raw_tx}"
-            )
-            
-            # Prompt for signed transaction
-            signed_tx = tk.simpledialog.askstring(
-                "Broadcast Transaction",
-                "Enter the signed transaction hex:"
-            )
-            
-            if signed_tx:
-                try:
-                    # Broadcast signed transaction
-                    web3 = Web3(Web3.HTTPProvider(os.getenv("RPC_URL")))
-                    tx_hash = web3.eth.send_raw_transaction(HexBytes(signed_tx))
-                    print(1)
-                    receipt = web3.eth.wait_for_transaction_receipt(tx_hash)
-                    print(2)
-                    if receipt['status'] == 1:
-                        tk.messagebox.showinfo("Success", "Doctor registered successfully!")
-                        # self.controller.show_main_frame(lg.LoginFrame)
-                    else:
-                        tk.messagebox.showerror("Error", "Transaction failed")
-                        
-                except Exception as e:
-                    print(e)
-                    tk.messagebox.showerror("Error", f"Failed to broadcast: {str(e)}")
-                    return
+        dialog = ctk.CTkInputDialog(text="Please Enter your private key to sign the transaction", title="Private Key", button_text_color=("gray98", "#FFFFFF"), button_fg_color=("#8651ff", "#8651ff"))
+        private_key = dialog.get_input()
         
+        if self.validate_private_key(private_key) == False:
+            return
+        try:
+            signed_tx = self.web3.eth.account.sign_transaction(raw_tx, private_key)
+            tx_hash = self.web3.eth.send_raw_transaction(signed_tx.raw_transaction)
+            receipt = self.web3.eth.wait_for_transaction_receipt(tx_hash)
+            if receipt['status'] == 1:
+                tk.messagebox.showinfo("Success", "Doctor registration successful!")
+            else:
+                tk.messagebox.showerror("Error", "Transaction failed")
+        except Exception as e:
+            print(e)
+            tk.messagebox.showerror("Error", f"Failed to broadcast: {str(e)}")
+            return
+        
+    def get_patient_unsigned_tx(self, address, name, dob, phone, gender):
+        try:
+            checksum_address = self.web3.to_checksum_address(address.lower())
+            tx = self.patient_contract.functions.registerPatient(
+                name, dob, phone, gender
+            ).build_transaction({
+                'from': checksum_address,
+                'nonce': self.web3.eth.get_transaction_count(checksum_address),
+                'gas': self.patient_contract.functions.registerPatient(
+                    name, dob, phone, gender
+                ).estimate_gas({'from': checksum_address}),
+                'gasPrice': self.web3.eth.gas_price
+            })
+            
+            return tx
+        
+        except Exception as e:
+            tk.messagebox.showerror("Error", f"Failed to create transaction: {str(e)}")
+            return None
+    
+    
+    def register_patient(self):
+        address = self.ENTRY7.get()
+        name = self.ENTRY8.get()
+        dob = self.ENTRY9.get()
+        phone = self.ENTRY10.get()
+        gender = self.COMBOBOX2.get()
+        
+        self.verify_credentials(address, name, dob, phone, gender)
+        
+        raw_tx = self.get_patient_unsigned_tx(address, name, dob, phone, gender)
+        
+        dialog = ctk.CTkInputDialog(text="Please Enter your private key to sign the transaction", title="Private Key", button_text_color=("gray98", "#FFFFFF"), button_fg_color=("#8651ff", "#8651ff"))
+        private_key = dialog.get_input()
+        
+        if self.validate_private_key(private_key) == False:
+            return
+        
+        try:
+            signed_tx = self.web3.eth.account.sign_transaction(raw_tx, private_key)
+            tx_hash = self.web3.eth.send_raw_transaction(signed_tx.raw_transaction)
+            receipt = self.web3.eth.wait_for_transaction_receipt(tx_hash)
+            if receipt['status'] == 1:
+                tk.messagebox.showinfo("Success", "Patient registration successful!")
+            else:
+                tk.messagebox.showerror("Error", "Transaction failed")
+                
+        except Exception as e:
+            print(e)
+            tk.messagebox.showerror("Error", f"Failed to broadcast: {str(e)}")
+            return
