@@ -23,10 +23,15 @@ contract PatientContract is ReentrancyGuard {
         bool hasAccess;
     }
     
+    struct MedicalFile {
+        string ipfsHash;
+        string name;
+    }
+
     // Mappings
     mapping(address => Patient) public patients;
     mapping(address => mapping(address => DoctorAccess)) public patientDoctorAccess;
-    mapping(address => string[]) public patientMedicalFiles;
+    mapping(address => MedicalFile[]) public patientMedicalFiles;
     mapping(address => string[]) public patientComments;
     
     // Counters
@@ -65,6 +70,7 @@ contract PatientContract is ReentrancyGuard {
     // Grant Access to Doctor
     function grantDoctorAccess(address _doctorAddress) external nonReentrant {
         require(patients[msg.sender].isRegistered, "Patient not registered");
+        require(!patientDoctorAccess[msg.sender][_doctorAddress].hasAccess, "Doctor already has access");
         
         patientDoctorAccess[msg.sender][_doctorAddress] = DoctorAccess({
             doctorAddress: _doctorAddress,
@@ -77,7 +83,8 @@ contract PatientContract is ReentrancyGuard {
     // Revoke Doctor Access
     function revokeDoctorAccess(address _doctorAddress) external nonReentrant {
         require(patients[msg.sender].isRegistered, "Patient not registered");
-        
+        require(patientDoctorAccess[msg.sender][_doctorAddress].hasAccess, "Doctor does not have access");
+
         delete patientDoctorAccess[msg.sender][_doctorAddress];
         
         emit DoctorAccessRevoked(msg.sender, _doctorAddress);
@@ -93,12 +100,26 @@ contract PatientContract is ReentrancyGuard {
     }
     
     // Add Medical File
-    function addMedicalFile(string memory _ipfsHash) external nonReentrant {
+    function addMedicalFile(string memory name, string memory _ipfsHash) external nonReentrant {
         require(patients[msg.sender].isRegistered, "Patient not registered");
         
-        patientMedicalFiles[msg.sender].push(_ipfsHash);
+        patientMedicalFiles[msg.sender].push(MedicalFile({
+            ipfsHash: _ipfsHash,
+            name: name
+        }));
         
         emit MedicalFileAdded(msg.sender, _ipfsHash);
+    }
+
+    function deleteMedicalFile(string memory _ipfsHash) external nonReentrant {
+        require(patients[msg.sender].isRegistered, "Patient not registered");
+        
+        for (uint i = 0; i < patientMedicalFiles[msg.sender].length; i++) {
+            if (keccak256(abi.encodePacked(patientMedicalFiles[msg.sender][i].ipfsHash)) == keccak256(abi.encodePacked(_ipfsHash))) {
+                delete patientMedicalFiles[msg.sender][i];
+                break;
+            }
+        }
     }
     
     // Add Comment
@@ -110,28 +131,31 @@ contract PatientContract is ReentrancyGuard {
         emit CommentAdded(msg.sender, _comment);
     }
     
-    // Get Patient Information (only for patients with granted access)
-    function getPatientInfo(address _patientAddress) 
+    // Get Own Patient Information
+    function getPatientInfo() 
         external 
         view 
-        returns (Patient memory) 
+        returns (string memory, string memory, string memory, string memory)
     {
-        require(
-            patientDoctorAccess[_patientAddress][msg.sender].hasAccess, 
-            "No access to patient information"
+        require(patients[msg.sender].isRegistered, "Patient not registered");
+        return (
+            patients[msg.sender].fullName, 
+            patients[msg.sender].dateOfBirth, 
+            patients[msg.sender].phoneNumber, 
+            patients[msg.sender].gender
         );
-        return patients[_patientAddress];
     }
     
     // Get Medical Files
     function getMedicalFiles(address _patientAddress) 
         external 
         view 
-        returns (string[] memory) 
+        returns (MedicalFile[] memory)
     {
+        require(patients[msg.sender].isRegistered, "Patient not registered");
         require(
             patientDoctorAccess[_patientAddress][msg.sender].hasAccess, 
-            "No access to patient files"
+            "No access to patient medical files"
         );
         return patientMedicalFiles[_patientAddress];
     }

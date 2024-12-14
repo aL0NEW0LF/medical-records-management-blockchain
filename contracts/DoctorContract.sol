@@ -69,6 +69,7 @@ contract DoctorContract is ReentrancyGuard {
     // Upload Medical File for a Patient
     function uploadMedicalFile(
         address _patientAddress, 
+        string memory name,
         string memory _ipfsHash
     ) external nonReentrant {
         // Check if doctor is registered
@@ -81,7 +82,7 @@ contract DoctorContract is ReentrancyGuard {
         );
         
         // Add file to patient's medical files via patient contract
-        patientContract.addMedicalFile(_ipfsHash);
+        patientContract.addMedicalFile(name, _ipfsHash);
         
         // Track doctor's uploaded files
         doctorMedicalFiles[msg.sender].push(_ipfsHash);
@@ -93,11 +94,31 @@ contract DoctorContract is ReentrancyGuard {
     function getDoctorInfo(address _doctorAddress) 
         external 
         view 
-        returns (Doctor memory) 
+        returns (string memory, string memory, string memory, string memory, string memory, string memory)
     {
-        return doctors[_doctorAddress];
+        return (
+            doctors[_doctorAddress].fullName, 
+            doctors[_doctorAddress].dateOfBirth, 
+            doctors[_doctorAddress].phoneNumber, 
+            doctors[_doctorAddress].gender,
+            doctors[_doctorAddress].speciality,
+            doctors[_doctorAddress].licenseNumber
+        );
     }
-    
+
+    function getPatientMedicalFiles(address _patientAddress) 
+        external 
+        view 
+        returns (PatientContract.MedicalFile[] memory) 
+    {
+        require(
+            patientContract.checkDoctorAccess(_patientAddress, msg.sender), 
+            "No access to patient"
+        );
+
+        return patientContract.getMedicalFiles(_patientAddress);
+    }
+
     // Get Doctor's Uploaded Medical Files
     function getDoctorMedicalFiles() 
         external 
