@@ -19,6 +19,10 @@ class App(ctk.CTk):
         self.title("Medical Records Management")
         self.geometry("1000x600")
         self.configure(fg_color=['gray92', 'gray14'])
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        self.iconbitmap(os.path.join(current_dir, "Assets", "cardiogram.ico"))
+        if platform.system() == "Windows":
+            ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(self.myappid)
         try:
             dotenv.load_dotenv()
             self.web3 = Web3(Web3.HTTPProvider(os.getenv("RPC_URL")))
