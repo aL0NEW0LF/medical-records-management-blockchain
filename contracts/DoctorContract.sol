@@ -73,8 +73,8 @@ contract DoctorContract is ReentrancyGuard {
     // Upload Medical File for a Patient
     function uploadMedicalFile(
         address _patientAddress, 
-        string memory name,
-        string memory _ipfsHash
+        string memory _ipfsHash,
+        string memory name
     ) external nonReentrant {
         // Check if doctor is registered
         require(doctors[msg.sender].isRegistered, "Doctor not registered");
@@ -86,7 +86,7 @@ contract DoctorContract is ReentrancyGuard {
         );
         
         // Add file to patient's medical files via patient contract
-        patientContract.addMedicalFile(name, _ipfsHash);
+        patientContract.addMedicalFile(_ipfsHash, name);
         
         // Track doctor's uploaded files
         doctorMedicalFiles[msg.sender].push(_ipfsHash);

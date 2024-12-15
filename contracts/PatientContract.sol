@@ -104,7 +104,7 @@ contract PatientContract is ReentrancyGuard {
     }
     
     // Add Medical File
-    function addMedicalFile(string memory name, string memory _ipfsHash) external nonReentrant {
+    function addMedicalFile(string memory _ipfsHash, string memory name) external nonReentrant {
         require(patients[msg.sender].isRegistered, "Patient not registered");
         
         patientMedicalFiles[msg.sender].push(MedicalFile({
