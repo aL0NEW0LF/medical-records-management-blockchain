@@ -32,7 +32,6 @@ contract PatientContract is ReentrancyGuard {
     mapping(address => Patient) public patients;
     mapping(address => mapping(address => DoctorAccess)) public patientDoctorAccess;
     mapping(address => MedicalFile[]) public patientMedicalFiles;
-    mapping(address => string[]) public patientComments;
     
     // Counters
     Counters.Counter private patientCounter;
@@ -42,7 +41,6 @@ contract PatientContract is ReentrancyGuard {
     event DoctorAccessGranted(address indexed patientAddress, address indexed doctorAddress);
     event DoctorAccessRevoked(address indexed patientAddress, address indexed doctorAddress);
     event MedicalFileAdded(address indexed patientAddress, string ipfsHash);
-    event CommentAdded(address indexed patientAddress, string comment);
     
     // Patient Registration
     function registerPatient(
@@ -130,14 +128,6 @@ contract PatientContract is ReentrancyGuard {
         }
     }
     
-    // Add Comment
-    function addComment(string memory _comment) external nonReentrant {
-        require(patients[msg.sender].isRegistered, "Patient not registered");
-        
-        patientComments[msg.sender].push(_comment);
-        
-        emit CommentAdded(msg.sender, _comment);
-    }
     
     // Get Own Patient Information
     function getPatientInfo() 
@@ -171,19 +161,6 @@ contract PatientContract is ReentrancyGuard {
             "No access to patient medical files"
         );
         return patientMedicalFiles[_patientAddress];
-    }
-    
-    // Get Patient Comments
-    function getComments(address _patientAddress) 
-        external 
-        view 
-        returns (string[] memory) 
-    {
-        require(
-            patientDoctorAccess[_patientAddress][msg.sender].hasAccess, 
-            "No access to patient comments"
-        );
-        return patientComments[_patientAddress];
     }
     
     // Get Total Registered Patients
