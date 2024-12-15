@@ -18,35 +18,28 @@ class PatientFrame(ctk.CTkFrame):
         self.LABEL1 = ctk.CTkLabel(master=self.FRAME0, text="Profile", anchor="n", text_color=("gray10", "#FFFFFF"), font=ctk.CTkFont(size=42, weight="bold"))
         self.LABEL1.pack(pady=(0, 30))
         self.FRAME1 = ctk.CTkFrame(master=self.FRAME0, fg_color="transparent")
-        self.FRAME1.pack(pady=10, fill="x")
+        self.FRAME1.pack(expand=True, fill="both", padx=20, pady=20)
         self.LABEL2 = ctk.CTkLabel(master=self.FRAME1, text="Logged in as:", anchor="center", text_color=("gray10", "#FFFFFF"), font=ctk.CTkFont(size=16, weight="bold"))
-        self.LABEL2.pack(fill="x")
+        self.LABEL2.grid(row=0, column=0, pady=5, sticky="w", padx=10)
         self.LABEL3 = ctk.CTkLabel(master=self.FRAME1, text="0x"+40*"0", anchor="center", text_color=("gray40", "#AAAAAA"), font=ctk.CTkFont(size=15))
-        self.LABEL3.pack(fill="x")
-        self.FRAME2 = ctk.CTkFrame(master=self.FRAME0, fg_color="transparent")
-        self.FRAME2.pack(pady=10, fill="x")
-        self.LABEL4 = ctk.CTkLabel(master=self.FRAME2, text="Name:", anchor="center", text_color=("gray10", "#FFFFFF"), font=ctk.CTkFont(size=16, weight="bold"))
-        self.LABEL4.pack(fill="x")
-        self.LABEL41 = ctk.CTkLabel(master=self.FRAME2, text="John Doe", anchor="center", text_color=("gray40", "#AAAAAA"), font=ctk.CTkFont(size=15))
-        self.LABEL41.pack(fill="x")
-        self.FRAME3 = ctk.CTkFrame(master=self.FRAME0, fg_color="transparent")
-        self.FRAME3.pack(pady=10, fill="x")
-        self.LABEL5 = ctk.CTkLabel(master=self.FRAME3, text="Date of Birth:", anchor="center", text_color=("gray10", "#FFFFFF"), font=ctk.CTkFont(size=16, weight="bold"))
-        self.LABEL5.pack(fill="x")
-        self.LABEL51 = ctk.CTkLabel(master=self.FRAME3, text="01/01/2000", anchor="center", text_color=("gray40", "#AAAAAA"), font=ctk.CTkFont(size=15))
-        self.LABEL51.pack(fill="x")
-        self.FRAME4 = ctk.CTkFrame(master=self.FRAME0, fg_color="transparent")
-        self.FRAME4.pack(pady=10, fill="x")
-        self.LABEL6 = ctk.CTkLabel(master=self.FRAME4, text="Phone Number:", anchor="center", text_color=("gray10", "#FFFFFF"), font=ctk.CTkFont(size=16, weight="bold"))
-        self.LABEL6.pack(fill="x")
-        self.LABEL61 = ctk.CTkLabel(master=self.FRAME4, text="0123456789", anchor="center", text_color=("gray40", "#AAAAAA"), font=ctk.CTkFont(size=15))
-        self.LABEL61.pack(fill="x")
-        self.FRAME5 = ctk.CTkFrame(master=self.FRAME0, fg_color="transparent")
-        self.FRAME5.pack(pady=10, fill="x")
-        self.LABEL62 = ctk.CTkLabel(master=self.FRAME5, text="Gender:", anchor="center", text_color=("gray10", "#FFFFFF"), font=ctk.CTkFont(size=16, weight="bold"))
-        self.LABEL62.pack(fill="x")
-        self.LABEL621 = ctk.CTkLabel(master=self.FRAME5, text="Male/Female", anchor="center", text_color=("gray40", "#AAAAAA"), font=ctk.CTkFont(size=15))
-        self.LABEL621.pack(fill="x")
+        self.LABEL3.grid(row=0, column=1, pady=5, sticky="w", padx=10)
+        self.LABEL4 = ctk.CTkLabel(master=self.FRAME1, text="Name:", anchor="center", text_color=("gray10", "#FFFFFF"), font=ctk.CTkFont(size=16, weight="bold"))
+        self.LABEL4.grid(row=1, column=0, pady=5, sticky="w", padx=10)
+        self.LABEL41 = ctk.CTkLabel(master=self.FRAME1, text="John Doe", anchor="center", text_color=("gray40", "#AAAAAA"), font=ctk.CTkFont(size=15))
+        self.LABEL41.grid(row=1, column=1, pady=5, sticky="w", padx=10)
+        self.LABEL5 = ctk.CTkLabel(master=self.FRAME1, text="Date of Birth:", anchor="center", text_color=("gray10", "#FFFFFF"), font=ctk.CTkFont(size=16, weight="bold"))
+        self.LABEL5.grid(row=2, column=0, pady=5, sticky="w", padx=10)
+        self.LABEL51 = ctk.CTkLabel(master=self.FRAME1, text="01/01/2000", anchor="center", text_color=("gray40", "#AAAAAA"), font=ctk.CTkFont(size=15))
+        self.LABEL51.grid(row=2, column=1, pady=5, sticky="w", padx=10)
+        self.LABEL6 = ctk.CTkLabel(master=self.FRAME1, text="Phone Number:", anchor="center", text_color=("gray10", "#FFFFFF"), font=ctk.CTkFont(size=16, weight="bold"))
+        self.LABEL6.grid(row=3, column=0, pady=5, sticky="w", padx=10)
+        self.LABEL61 = ctk.CTkLabel(master=self.FRAME1, text="0123456789", anchor="center", text_color=("gray40", "#AAAAAA"), font=ctk.CTkFont(size=15))
+        self.LABEL61.grid(row=3, column=1, pady=5, sticky="w", padx=10)
+        self.LABEL62 = ctk.CTkLabel(master=self.FRAME1, text="Gender:", anchor="center", text_color=("gray10", "#FFFFFF"), font=ctk.CTkFont(size=16, weight="bold"))
+        self.LABEL62.grid(row=4, column=0, pady=5, sticky="w", padx=10)
+        self.LABEL621 = ctk.CTkLabel(master=self.FRAME1, text="Male/Female", anchor="center", text_color=("gray40", "#AAAAAA"), font=ctk.CTkFont(size=15))
+        self.LABEL621.grid(row=4, column=1, pady=5, sticky="w", padx=10)
+        self.FRAME1.grid_columnconfigure(1, weight=1)
         self.BUTTON1 = ctk.CTkButton(master=self.FRAME0,text="Logout",fg_color="#8651ff",hover_color="#6940c9",command=lambda: self.controller.show_main_frame(lg.LoginFrame))
         self.BUTTON1.pack(pady=(20, 0))
         
@@ -57,7 +50,6 @@ class PatientFrame(ctk.CTkFrame):
         self.FRAME6.pack(pady=(20, 20), padx=(40, 40), expand=1, fill="both")
         self.LABEL7 = ctk.CTkLabel(master=self.FRAME6, text="Grant/Revoke Access", anchor="n", text_color=("gray10", "#FFFFFF"), font=ctk.CTkFont(size=42, weight="bold"))
         self.LABEL7.pack(pady=(0, 30))
-        
         self.grant_frame = ctk.CTkFrame(master=self.FRAME6, fg_color="transparent")
         self.grant_frame.pack(side="left", padx=20, expand=True, fill="both")
         self.grant_label = ctk.CTkLabel(master=self.grant_frame, text="Grant Access", font=ctk.CTkFont(size=20, weight="bold"))
@@ -66,7 +58,6 @@ class PatientFrame(ctk.CTkFrame):
         self.grant_entry.pack(pady=10, fill="x", padx=20)
         self.grant_button = ctk.CTkButton(master=self.grant_frame, text="Grant Access", fg_color="#8651ff", hover_color="#6940c9", command=self.grant_access)
         self.grant_button.pack(pady=10, anchor="center")
-
         self.revoke_frame = ctk.CTkFrame(master=self.FRAME6, fg_color="transparent")
         self.revoke_frame.pack(side="right", padx=20, expand=True, fill="both")
         self.revoke_label = ctk.CTkLabel(master=self.revoke_frame, text="Revoke Access", font=ctk.CTkFont(size=20, weight="bold"))
@@ -84,13 +75,10 @@ class PatientFrame(ctk.CTkFrame):
         self.FRAME7.pack(pady=(20, 20), padx=(40, 40), expand=1, fill="both")
         self.LABEL8 = ctk.CTkLabel(master=self.FRAME7, text="Medical Records", anchor="n", text_color=("gray10", "#FFFFFF"), font=ctk.CTkFont(size=42, weight="bold"))
         self.LABEL8.pack(pady=(0, 30))
-        
         self.SCROLLABLE_FRAME1 = ctk.CTkScrollableFrame(master=self.FRAME7)
         self.SCROLLABLE_FRAME1.pack(pady=10, padx=20, fill="both", expand=True)
-        
         style = tk.ttk.Style()
         style.theme_use("default")
-
         style.configure("Treeview",
                         background="#2a2d2e",
                         foreground="white",
@@ -99,55 +87,37 @@ class PatientFrame(ctk.CTkFrame):
                         bordercolor="#343638",
                         borderwidth=0)
         style.map('Treeview', background=[('selected', '#22559b')])
-
-        # style.configure("Treeview.Heading",
-        #                 background="#565b5e",
-        #                 foreground="white",
-        #                 relief="flat")
-        # style.map("Treeview.Heading",
-        #             background=[('active', '#3484F0')])
-                # Configure tag for custom heading color
         style.configure("Custom.Treeview.Heading",
                         background="#8651ff",
                         foreground="white",
                         relief="flat")
         style.map("Custom.Treeview.Heading",
                     background=[('active', '#6940c9')])
-
         self.TABLE1 = tk.ttk.Treeview(self.SCROLLABLE_FRAME1, style="Custom.Treeview", selectmode='browse')
         self.TABLE1['columns'] = ('IPFS Hash', 'File Name')
-        
         self.TABLE1.column('#0', width=0, stretch=tk.NO)
         self.TABLE1.column('IPFS Hash', anchor=tk.CENTER, width=200)
         self.TABLE1.column('File Name', anchor=tk.CENTER, width=200)
-        
         self.TABLE1.heading('#0', text='', anchor=tk.CENTER)
         self.TABLE1.heading('IPFS Hash', text='IPFS Hash', anchor=tk.CENTER)
         self.TABLE1.heading('File Name', text='File Name', anchor=tk.CENTER)
-
-        
         self.TABLE1.pack(pady=10, padx=20, fill="both", expand=True)
-        
         self.button_frame = ctk.CTkFrame(master=self.FRAME7, fg_color="transparent")
         self.button_frame.pack(pady=10, fill="x")
-        
         self.download_button = ctk.CTkButton(master=self.button_frame, text="Download Selected", 
                fg_color="#4CAF50", hover_color="#45a049", 
                command=lambda: self.download_file(self.get_selected_row()),
                state="disabled", text_color=("gray10", "#000000"))
         self.download_button.pack(side="left", padx=5, expand=True)
-        
         self.BUTTON2 = ctk.CTkButton(master=self.button_frame, text="Upload New File", 
             fg_color="#8651ff", hover_color="#6940c9", 
             command=self.upload_file, text_color=("gray10", "#000000"))
         self.BUTTON2.pack(side="left", padx=5, expand=True)
-        
         self.delete_button = ctk.CTkButton(master=self.button_frame, text="Delete Selected", 
              fg_color="#ff4444", hover_color="#cc0000", 
              command=lambda: self.delete_file(self.get_selected_row()),
              state="disabled", text_color=("gray10", "#000000"))
         self.delete_button.pack(side="left", padx=5, expand=True)
-        
         self.TABLE1.bind('<<TreeviewSelect>>', self.on_table_click)
         self.web3 = self.controller.web3
         self.patient_contract = self.controller.patient_contract
@@ -203,12 +173,15 @@ class PatientFrame(ctk.CTkFrame):
                     
             except Exception as e:
                 tk.messagebox.showerror('Python Error', str(e))
-                return
-            
+                return    
+        else:
+            tk.messagebox.showerror('Error', "Please select a file to upload.")
+            return
+        
     def update_patient_frame(self):
         try:
-            name, dob, phone, gender = self.controller.patient_contract.functions.getPatientInfo().call({'from': self.web3.account})
-            medical_files = self.controller.patient_contract.functions.getOwnMedicalFiles().call({'from': self.web3.account})
+            name, dob, phone, gender = self.patient_contract.functions.getPatientInfo().call({'from': self.web3.account})
+            medical_files = self.patient_contract.functions.getOwnMedicalFiles().call({'from': self.web3.account})
             for item in self.TABLE1.get_children():
                 self.TABLE1.delete(item)
             for file in medical_files:
