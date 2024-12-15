@@ -33,3 +33,4 @@ class logdFrame(ctk.CTkFrame):
                 current_frame.tkraise()
             else:
                 tk.messagebox.showerror('Python Error', "Please enter a valide key")
+

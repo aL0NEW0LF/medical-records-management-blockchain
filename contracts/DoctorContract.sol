@@ -19,13 +19,18 @@ contract DoctorContract is ReentrancyGuard {
         string licenseNumber;
         bool isRegistered;
     }
-    
+
+    struct MedicalFile {
+        string ipfsHash;
+        string name;
+    }
+
     // Patient Contract Reference
     PatientContract public patientContract;
     
     // Mappings
     mapping(address => Doctor) public doctors;
-    mapping(address => string[]) public doctorMedicalFiles;
+    mapping(address => MedicalFile[]) public doctorMedicalFiles;
     
     // Counters
     Counters.Counter private doctorCounter;
@@ -66,10 +71,15 @@ contract DoctorContract is ReentrancyGuard {
         emit DoctorRegistered(msg.sender, _fullName, _speciality);
     }
     
+    function isDoctorRegistered(address _doctorAddress) external view returns (bool) {
+        return doctors[_doctorAddress].isRegistered;
+    }
+
     // Upload Medical File for a Patient
     function uploadMedicalFile(
         address _patientAddress, 
-        string memory _ipfsHash
+        string memory _ipfsHash,
+        string memory name
     ) external nonReentrant {
         // Check if doctor is registered
         require(doctors[msg.sender].isRegistered, "Doctor not registered");
@@ -81,10 +91,13 @@ contract DoctorContract is ReentrancyGuard {
         );
         
         // Add file to patient's medical files via patient contract
-        patientContract.addMedicalFile(_ipfsHash);
+        patientContract.addMedicalFile(_ipfsHash, name, _patientAddress);
         
         // Track doctor's uploaded files
-        doctorMedicalFiles[msg.sender].push(_ipfsHash);
+        doctorMedicalFiles[msg.sender].push(MedicalFile({
+            ipfsHash: _ipfsHash,
+            name: name
+        }));
         
         emit MedicalFileUploaded(msg.sender, _patientAddress, _ipfsHash);
     }
@@ -93,16 +106,51 @@ contract DoctorContract is ReentrancyGuard {
     function getDoctorInfo(address _doctorAddress) 
         external 
         view 
-        returns (Doctor memory) 
+        returns (string memory, string memory, string memory, string memory, string memory, string memory)
     {
-        return doctors[_doctorAddress];
+        return (
+            doctors[_doctorAddress].fullName, 
+            doctors[_doctorAddress].dateOfBirth, 
+            doctors[_doctorAddress].phoneNumber, 
+            doctors[_doctorAddress].gender,
+            doctors[_doctorAddress].speciality,
+            doctors[_doctorAddress].licenseNumber
+        );
     }
-    
+
+    function getPatientMedicalFiles(address _patientAddress) 
+        external 
+        view 
+        returns (PatientContract.MedicalFile[] memory) 
+    {
+        require(
+            patientContract.checkDoctorAccess(_patientAddress, msg.sender), 
+            "No access to patient"
+        );
+
+        return patientContract.getMedicalFiles(_patientAddress, msg.sender);
+    }
+
+    function deleteOwnMedicalFile(string memory _ipfsHash) external nonReentrant {
+        require(doctors[msg.sender].isRegistered, "Doctor not registered");
+        
+        MedicalFile[] storage files = doctorMedicalFiles[msg.sender];
+        for (uint i = 0; i < files.length; i++) {
+            if (keccak256(abi.encodePacked(files[i].ipfsHash)) == keccak256(abi.encodePacked(_ipfsHash))) {
+                for (uint j = i; j < files.length - 1; j++) {
+                    files[j] = files[j + 1];
+                }
+                files.pop();
+                break;
+            }
+        }
+    }
+
     // Get Doctor's Uploaded Medical Files
     function getDoctorMedicalFiles() 
         external 
         view 
-        returns (string[] memory) 
+        returns (MedicalFile[] memory) 
     {
         return doctorMedicalFiles[msg.sender];
     }
