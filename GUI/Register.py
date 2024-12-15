@@ -280,7 +280,9 @@ class RegisterFrame(ctk.CTkFrame):
         phone = self.ENTRY10.get()
         gender = self.COMBOBOX2.get()
         
-        self.verify_credentials(address, name, dob, phone, gender)
+        valid = self.verify_credentials(address, name, dob, phone, gender)
+        if valid == False:
+            return
         
         raw_tx = self.get_patient_unsigned_tx(address, name, dob, phone, gender)
         
