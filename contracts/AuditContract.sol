@@ -14,6 +14,9 @@ contract AuditContract {
         string description;
     }
     
+    mapping(address => bool) public auditors;
+    address[] registeredAuditors;
+
     // Mappings
     mapping(uint256 => AuditEvent) public auditTrail;
     Counters.Counter private eventCounter;
@@ -26,6 +29,26 @@ contract AuditContract {
         string description
     );
     
+    constructor() {
+        auditors[msg.sender] = true;
+        registeredAuditors.push(msg.sender);
+    }
+
+    function isAuditor() public view returns (bool) {
+        return auditors[msg.sender];
+    }
+
+    function addAuditor(address _auditor) external {
+        require(isAuditor(), "Not an auditor");
+        auditors[_auditor] = true;
+        registeredAuditors.push(_auditor);
+    }
+
+    function getAuditors() external view returns (address[] memory) {
+        require(isAuditor(), "Not an auditor");
+        return registeredAuditors;
+    }
+
     // Log Patient Registration
     function logPatientRegistration(address _patient, string memory _fullName) external {
         logEvent(_patient, "PATIENT_REGISTRATION", 
@@ -69,7 +92,7 @@ contract AuditContract {
     }
     
     // Log Medical File Upload
-    function logMedicalFileUpload(
+    function logDoctorMedicalFileUpload(
         address _doctor, 
         address _patient
     ) external {
@@ -78,6 +101,17 @@ contract AuditContract {
                 "Medical File Uploaded: Doctor ", 
                 addressToString(_doctor), 
                 " for Patient ", 
+                addressToString(_patient)
+            ))
+        );
+    }
+
+    function logPatientMedicalFileUpload(
+        address _patient
+    ) external {
+        logEvent(_patient, "MEDICAL_FILE_UPLOAD", 
+            string(abi.encodePacked(
+                "Medical File Uploaded: Patient ", 
                 addressToString(_patient)
             ))
         );
@@ -131,9 +165,21 @@ contract AuditContract {
         view 
         returns (AuditEvent memory) 
     {
+        require(isAuditor(), "Not an auditor");
         return auditTrail[_eventId];
     }
     
+    function getFullAuditTrail() external view returns (AuditEvent[] memory) {
+        require(isAuditor(), "Not an auditor");
+        
+        AuditEvent[] memory events = new AuditEvent[](eventCounter.current());
+        for (uint i = 0; i < eventCounter.current(); i++) {
+            events[i] = auditTrail[i];
+        }
+        
+        return events;
+    }
+
     // Get Total Events
     function getTotalEvents() external view returns (uint256) {
         return eventCounter.current();
