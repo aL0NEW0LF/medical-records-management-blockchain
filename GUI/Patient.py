@@ -119,8 +119,10 @@ class PatientFrame(ctk.CTkFrame):
              state="disabled", text_color=("gray10", "#000000"))
         self.delete_button.pack(side="left", padx=5, expand=True)
         self.TABLE1.bind('<<TreeviewSelect>>', self.on_table_click)
+        
         self.web3 = self.controller.web3
         self.patient_contract = self.controller.patient_contract
+        self.audit_contract = self.controller.audit_contract
         
     def on_table_click(self, event):
         selected_items = self.TABLE1.selection()
@@ -168,9 +170,13 @@ class PatientFrame(ctk.CTkFrame):
                     response = self.controller.ipfs_client.add_bytes(file_content)
                     ipfs_hash = response
                     tx_hash = self.patient_contract.functions.addMedicalFile(ipfs_hash, file_name, self.web3.account).transact({'from': self.web3.account})
-                    self.web3.eth.wait_for_transaction_receipt(tx_hash)
+                    receipt = self.web3.eth.wait_for_transaction_receipt(tx_hash)
+                    if receipt['status'] == 0:
+                        tk.messagebox.showerror('Error', "Transaction reverted. File not uploaded.")
+                        return
+                    tx_hash = self.audit_contract.functions.logPatientMedicalFileUpload(self.web3.account).transact({'from': self.web3.account})
+                    receipt = self.web3.eth.wait_for_transaction_receipt(tx_hash)
                     self.TABLE1.insert('', 'end', values=(ipfs_hash, file_name))
-                    
             except Exception as e:
                 tk.messagebox.showerror('Python Error', str(e))
                 return    
@@ -204,9 +210,15 @@ class PatientFrame(ctk.CTkFrame):
             if not self.web3.is_address(address):
                 tk.messagebox.showerror('Error', "Invalid address. Please enter a valid Ethereum address.")
                 return
-            tx_hash = self.patient_contract.functions.grantDoctorAccess(self.web3.to_checksum_address(address.lower())).transact({'from': self.web3.account})
-            self.web3.eth.wait_for_transaction_receipt(tx_hash)
-            tk.messagebox.showinfo('Success', f"Access granted to {address}")
+            doctor_address = self.web3.to_checksum_address(address.lower())
+            tx_hash = self.patient_contract.functions.grantDoctorAccess(doctor_address).transact({'from': self.web3.account})
+            receipt = self.web3.eth.wait_for_transaction_receipt(tx_hash)
+            if receipt['status'] == 0:
+                tk.messagebox.showerror('Error', "Transaction reverted. Access not granted.")
+                return
+            tx_hash = self.audit_contract.functions.logDoctorAccessGrant(self.web3.account, doctor_address).transact({'from': self.web3.account})
+            receipt = self.web3.eth.wait_for_transaction_receipt(tx_hash)
+            tk.messagebox.showinfo('Success', f"Access granted to {doctor_address}")
         except Exception as e:
             tk.messagebox.showerror('Python Error', str(e))
             return
@@ -217,9 +229,15 @@ class PatientFrame(ctk.CTkFrame):
             if not self.web3.is_address(address):
                 tk.messagebox.showerror('Error', "Invalid address. Please enter a valid Ethereum address.")
                 return
-            tx_hash = self.patient_contract.functions.revokeDoctorAccess(self.web3.to_checksum_address(address.lower())).transact({'from': self.web3.account})
-            self.web3.eth.wait_for_transaction_receipt(tx_hash)
-            tk.messagebox.showinfo('Success', f"Access revoked from {address}")
+            doctor_address = self.web3.to_checksum_address(address.lower())
+            tx_hash = self.patient_contract.functions.revokeDoctorAccess(doctor_address).transact({'from': self.web3.account})
+            receipt = self.web3.eth.wait_for_transaction_receipt(tx_hash)
+            if receipt['status'] == 0:
+                tk.messagebox.showerror('Error', "Transaction reverted. Access not revoked.")
+                return
+            tx_hash = self.audit_contract.functions.logDoctorAccessRevoke(self.web3.account, doctor_address).transact({'from': self.web3.account})
+            receipt = self.web3.eth.wait_for_transaction_receipt(tx_hash)
+            tk.messagebox.showinfo('Success', f"Access revoked from {doctor_address}")
         except Exception as e:
             tk.messagebox.showerror('Python Error', str(e))
             return
