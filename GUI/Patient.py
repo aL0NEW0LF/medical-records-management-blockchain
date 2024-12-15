@@ -2,7 +2,6 @@ import customtkinter as ctk
 import tkinter as tk
 import os
 import Login as lg
-import re
 
 class PatientFrame(ctk.CTkFrame):
     def __init__(self, parent, controller):
@@ -65,7 +64,7 @@ class PatientFrame(ctk.CTkFrame):
         self.grant_label.pack(pady=10, anchor="center")
         self.grant_entry = ctk.CTkEntry(master=self.grant_frame, placeholder_text="Doctor's Address")
         self.grant_entry.pack(pady=10, fill="x", padx=20)
-        self.grant_button = ctk.CTkButton(master=self.grant_frame, text="Grant Access", fg_color="#8651ff", hover_color="#6940c9")
+        self.grant_button = ctk.CTkButton(master=self.grant_frame, text="Grant Access", fg_color="#8651ff", hover_color="#6940c9", command=self.grant_access)
         self.grant_button.pack(pady=10, anchor="center")
 
         self.revoke_frame = ctk.CTkFrame(master=self.FRAME6, fg_color="transparent")
@@ -74,7 +73,7 @@ class PatientFrame(ctk.CTkFrame):
         self.revoke_label.pack(pady=10, anchor="center")
         self.revoke_entry = ctk.CTkEntry(master=self.revoke_frame, placeholder_text="Doctor's Address")
         self.revoke_entry.pack(pady=10, fill="x", padx=20)
-        self.revoke_button = ctk.CTkButton(master=self.revoke_frame, text="Revoke Access", fg_color="#8651ff", hover_color="#6940c9")
+        self.revoke_button = ctk.CTkButton(master=self.revoke_frame, text="Revoke Access", fg_color="#8651ff", hover_color="#6940c9", command=self.revoke_access)
         self.revoke_button.pack(pady=10, anchor="center")
         
         ########## Medical Records ##########
@@ -89,7 +88,6 @@ class PatientFrame(ctk.CTkFrame):
         self.SCROLLABLE_FRAME1 = ctk.CTkScrollableFrame(master=self.FRAME7)
         self.SCROLLABLE_FRAME1.pack(pady=10, padx=20, fill="both", expand=True)
         
-        # Create Treeview
         style = tk.ttk.Style()
         style.theme_use("default")
 
@@ -102,47 +100,53 @@ class PatientFrame(ctk.CTkFrame):
                         borderwidth=0)
         style.map('Treeview', background=[('selected', '#22559b')])
 
-        style.configure("Treeview.Heading",
-                        background="#565b5e",
+        # style.configure("Treeview.Heading",
+        #                 background="#565b5e",
+        #                 foreground="white",
+        #                 relief="flat")
+        # style.map("Treeview.Heading",
+        #             background=[('active', '#3484F0')])
+                # Configure tag for custom heading color
+        style.configure("Custom.Treeview.Heading",
+                        background="#8651ff",
                         foreground="white",
                         relief="flat")
-        style.map("Treeview.Heading",
-                    background=[('active', '#3484F0')])
-        
+        style.map("Custom.Treeview.Heading",
+                    background=[('active', '#6940c9')])
+
         self.TABLE1 = tk.ttk.Treeview(self.SCROLLABLE_FRAME1, style="Custom.Treeview", selectmode='browse')
         self.TABLE1['columns'] = ('IPFS Hash', 'File Name')
         
-        # Configure columns
         self.TABLE1.column('#0', width=0, stretch=tk.NO)
         self.TABLE1.column('IPFS Hash', anchor=tk.CENTER, width=200)
         self.TABLE1.column('File Name', anchor=tk.CENTER, width=200)
         
-        # Configure headers
         self.TABLE1.heading('#0', text='', anchor=tk.CENTER)
         self.TABLE1.heading('IPFS Hash', text='IPFS Hash', anchor=tk.CENTER)
         self.TABLE1.heading('File Name', text='File Name', anchor=tk.CENTER)
+
         
         self.TABLE1.pack(pady=10, padx=20, fill="both", expand=True)
         
         self.button_frame = ctk.CTkFrame(master=self.FRAME7, fg_color="transparent")
         self.button_frame.pack(pady=10, fill="x")
         
-        self.delete_button = ctk.CTkButton(master=self.button_frame, text="Delete Selected", 
-             fg_color="#8651ff", hover_color="#6940c9", 
-             command=lambda: self.delete_file(self.get_selected_row()),
-             state="disabled")
-        self.delete_button.pack(side="left", padx=5, expand=True)
-        
         self.download_button = ctk.CTkButton(master=self.button_frame, text="Download Selected", 
-               fg_color="#8651ff", hover_color="#6940c9", 
+               fg_color="#4CAF50", hover_color="#45a049", 
                command=lambda: self.download_file(self.get_selected_row()),
-               state="disabled")
+               state="disabled", text_color=("gray10", "#000000"))
         self.download_button.pack(side="left", padx=5, expand=True)
         
-        self.BUTTON2 = ctk.CTkButton(master=self.FRAME7, text="Upload File to IPFS", 
+        self.BUTTON2 = ctk.CTkButton(master=self.button_frame, text="Upload New File", 
             fg_color="#8651ff", hover_color="#6940c9", 
-            command=self.upload_file)
-        self.BUTTON2.pack(pady=10, anchor="center")
+            command=self.upload_file, text_color=("gray10", "#000000"))
+        self.BUTTON2.pack(side="left", padx=5, expand=True)
+        
+        self.delete_button = ctk.CTkButton(master=self.button_frame, text="Delete Selected", 
+             fg_color="#ff4444", hover_color="#cc0000", 
+             command=lambda: self.delete_file(self.get_selected_row()),
+             state="disabled", text_color=("gray10", "#000000"))
+        self.delete_button.pack(side="left", padx=5, expand=True)
         
         self.TABLE1.bind('<<TreeviewSelect>>', self.on_table_click)
         self.web3 = self.controller.web3
@@ -166,17 +170,17 @@ class PatientFrame(ctk.CTkFrame):
     
     def delete_file(self, row):
         try:
-            self.patient_contract.functions.deleteMedicalFile(row[1]).transact({'from': self.web3.account})
+            self.patient_contract.functions.deleteMedicalFile(row[0]).transact({'from': self.web3.account})
             self.TABLE1.delete(self.TABLE1.selection())
-            self.controller.ipfs_client.pin.rm(row[1])
+            self.controller.ipfs_client.pin.rm(row[0])
         except Exception as e:
             tk.messagebox.showerror('Python Error', str(e))
             return
         
     def download_file(self, row):
         try:
-            file_content = self.controller.ipfs_client.cat(row[1])
-            file_path = os.path.join(ctk.filedialog.askdirectory(), row[0])
+            file_content = self.controller.ipfs_client.cat(row[0])
+            file_path = os.path.join(ctk.filedialog.askdirectory(), row[1])
             with open(file_path, 'wb') as f:
                 f.write(file_content)
             tk.messagebox.showinfo('Success', f"File downloaded successfully to: {file_path}")
@@ -193,9 +197,9 @@ class PatientFrame(ctk.CTkFrame):
                     file_content = file.read()
                     response = self.controller.ipfs_client.add_bytes(file_content)
                     ipfs_hash = response
-                    tx_hash = self.patient_contract.functions.addMedicalFile(file_name, ipfs_hash).transact({'from': self.web3.account})
+                    tx_hash = self.patient_contract.functions.addMedicalFile(ipfs_hash, file_name).transact({'from': self.web3.account})
                     self.web3.eth.wait_for_transaction_receipt(tx_hash)
-                    self.TABLE1.insert('', 'end', values=(file_name, ipfs_hash))
+                    self.TABLE1.insert('', 'end', values=(ipfs_hash, file_name))
                     
             except Exception as e:
                 tk.messagebox.showerror('Python Error', str(e))
@@ -219,4 +223,30 @@ class PatientFrame(ctk.CTkFrame):
         except Exception as e:
             tk.messagebox.showerror('Python Error', str(e))
             print(e)
+            return
+    
+    def grant_access(self):
+        try:
+            address = self.grant_entry.get()
+            if not self.web3.is_address(address):
+                tk.messagebox.showerror('Error', "Invalid address. Please enter a valid Ethereum address.")
+                return
+            tx_hash = self.patient_contract.functions.grantDoctorAccess(address).transact({'from': self.web3.account})
+            self.web3.eth.wait_for_transaction_receipt(tx_hash)
+            tk.messagebox.showinfo('Success', f"Access granted to {address}")
+        except Exception as e:
+            tk.messagebox.showerror('Python Error', str(e))
+            return
+        
+    def revoke_access(self):
+        try:
+            address = self.revoke_entry.get()
+            if not self.web3.is_address(address):
+                tk.messagebox.showerror('Error', "Invalid address. Please enter a valid Ethereum address.")
+                return
+            tx_hash = self.patient_contract.functions.revokeDoctorAccess(address).transact({'from': self.web3.account})
+            self.web3.eth.wait_for_transaction_receipt(tx_hash)
+            tk.messagebox.showinfo('Success', f"Access revoked from {address}")
+        except Exception as e:
+            tk.messagebox.showerror('Python Error', str(e))
             return
