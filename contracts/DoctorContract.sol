@@ -91,7 +91,7 @@ contract DoctorContract is ReentrancyGuard {
         );
         
         // Add file to patient's medical files via patient contract
-        patientContract.addMedicalFile(_ipfsHash, name);
+        patientContract.addMedicalFile(_ipfsHash, name, _patientAddress);
         
         // Track doctor's uploaded files
         doctorMedicalFiles[msg.sender].push(MedicalFile({
