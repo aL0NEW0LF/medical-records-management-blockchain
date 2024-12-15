@@ -7,6 +7,7 @@ from eth_account.messages import encode_defunct
 from hexbytes import HexBytes
 import Register as rg
 import Patient as pt
+import Doctor as dt
 
 class LoginFrame(ctk.CTkFrame):
     def __init__(self, parent, controller):
@@ -53,11 +54,28 @@ class LoginFrame(ctk.CTkFrame):
             tk.messagebox.showerror('Error', "Invalid address. Please enter a valid Ethereum address.")
             return
         nonce = random.randint(1000000, 99999999999)
-        message = f"Login with nonce: {nonce}"
-        print(message)
-        signable_message = encode_defunct(text=message)
-        dialog = ctk.CTkInputDialog(text=f"Please sign this message with your wallet:\n{message}", title="Sign Message", button_text_color=("gray98", "#FFFFFF"), button_fg_color=("#8651ff", "#8651ff"))
-        signature = dialog.get_input()
+        signable_message = encode_defunct(text=str(nonce))
+        dialog = ctk.CTkToplevel()
+        dialog.title("Sign Message")
+        message_label = ctk.CTkLabel(dialog, text="Please sign this message with your wallet:")
+        message_label.pack(padx=20, pady=(20, 0))
+        text_widget = ctk.CTkTextbox(dialog, height=50, width=300)
+        text_widget.insert("1.0", str(nonce))
+        text_widget.configure(state="disabled")
+        text_widget.pack(padx=20, pady=(0, 20))
+        entry = ctk.CTkEntry(dialog, width=300)
+        entry.pack(padx=20, pady=(0, 20))
+        button = ctk.CTkButton(dialog, text="OK", fg_color=("#8651ff", "#8651ff"), 
+                     text_color=("gray98", "#FFFFFF"))
+        button.pack(padx=20, pady=(0, 20))
+        def on_ok():
+            nonlocal signature
+            signature = entry.get()
+            dialog.destroy()
+            
+        signature = None
+        button.configure(command=on_ok)
+        dialog.wait_window()
         
         try:
             signature = HexBytes(json.loads(signature)["sig"])
@@ -71,8 +89,8 @@ class LoginFrame(ctk.CTkFrame):
                 self.web3.account = self.web3.to_checksum_address(address.lower())
                 doctor = self.controller.doctor_contract.functions.isDoctorRegistered(self.web3.account).call()
                 if doctor:
-                    self.update_doctor_frame()
-                    # self.controller.show_main_frame(dt.DoctorFrame)
+                    self.controller.frames[dt.DoctorFrame].update_doctor_frame()
+                    self.controller.show_main_frame(dt.DoctorFrame)
                     return
 
                 patient = self.controller.patient_contract.functions.isPatientRegistered(self.web3.account).call()
@@ -90,5 +108,3 @@ class LoginFrame(ctk.CTkFrame):
             tk.messagebox.showerror('Python Error', str(e))
             return
 
-    def update_doctor_frame(self):
-        pass
