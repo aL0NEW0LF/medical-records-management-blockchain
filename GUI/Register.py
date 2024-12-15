@@ -146,6 +146,7 @@ class RegisterFrame(ctk.CTkFrame):
         self.web3 = self.controller.web3
         self.doctor_contract = self.controller.doctor_contract
         self.patient_contract = self.controller.patient_contract
+        self.audit_contract = self.controller.audit_contract
     
     def validate_private_key(self, private_key):
         if not private_key or not private_key.startswith("0x") or len(private_key) != 66:
@@ -244,6 +245,9 @@ class RegisterFrame(ctk.CTkFrame):
             receipt = self.web3.eth.wait_for_transaction_receipt(tx_hash)
             if receipt['status'] == 1:
                 tk.messagebox.showinfo("Success", "Doctor registration successful!")
+                address = self.web3.to_checksum_address(address.lower())
+                tx_hash = self.audit_contract.functions.logDoctorRegistration(address, name).transact({'from': address})
+                receipt = self.web3.eth.wait_for_transaction_receipt(tx_hash)
                 self.controller.show_main_frame(lg.LoginFrame)
             else:
                 tk.messagebox.showerror("Error", "Transaction failed")
@@ -298,6 +302,9 @@ class RegisterFrame(ctk.CTkFrame):
             receipt = self.web3.eth.wait_for_transaction_receipt(tx_hash)
             if receipt['status'] == 1:
                 tk.messagebox.showinfo("Success", "Patient registration successful!")
+                address = self.web3.to_checksum_address(address.lower())
+                tx_hash = self.audit_contract.functions.logPatientRegistration(address, name).transact({'from': address})
+                receipt = self.web3.eth.wait_for_transaction_receipt(tx_hash)
                 self.controller.show_main_frame(lg.LoginFrame)
             else:
                 tk.messagebox.showerror("Error", "Transaction failed")

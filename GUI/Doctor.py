@@ -146,6 +146,7 @@ class DoctorFrame(ctk.CTkFrame):
     
         self.web3 = self.controller.web3
         self.doctor_contract = self.controller.doctor_contract
+        self.audit_contract = self.controller.audit_contract
     
     def on_table_click(self, event):
         selected_items = self.TABLE1.selection()
@@ -183,6 +184,8 @@ class DoctorFrame(ctk.CTkFrame):
             medical_files = self.doctor_contract.functions.getDoctorMedicalFiles().call({'from': self.web3.account})
             for item in self.TABLE1.get_children():
                 self.TABLE1.delete(item)
+            for item in self.TABLE2.get_children():
+                self.TABLE2.delete(item)
             for file in medical_files:
                 if file[0] == "" or file[1] == "":
                     continue
@@ -205,6 +208,7 @@ class DoctorFrame(ctk.CTkFrame):
             tk.messagebox.showerror('Error', "Invalid address. Please enter a valid Ethereum address.")
             return
         try:
+            patient_address = self.web3.to_checksum_address(patient_address.lower())
             medical_files = self.doctor_contract.functions.getPatientMedicalFiles(patient_address).call({'from': self.web3.account})
             for item in self.TABLE2.get_children():
                 self.TABLE2.delete(item)
@@ -255,8 +259,15 @@ class DoctorFrame(ctk.CTkFrame):
                 if patient_address == "":
                     tk.messagebox.showerror('Error', "Please enter the patient's address.")
                     return
+                patient_address = self.web3.to_checksum_address(patient_address.lower())
                 ipfs_hash = self.controller.ipfs_client.add_bytes(file_content)
-                self.doctor_contract.functions.uploadMedicalFile(patient_address, ipfs_hash, file_name).transact({'from': self.web3.account})
+                tx_hash = self.doctor_contract.functions.uploadMedicalFile(patient_address, ipfs_hash, file_name).transact({'from': self.web3.account})
+                receipt = self.web3.eth.wait_for_transaction_receipt(tx_hash)
+                if receipt['status'] == 0:
+                    tk.messagebox.showerror('Error', "Transaction failed. Please try again.")
+                    return
+                tx_hash = self.audit_contract.functions.logDoctorMedicalFileUpload(self.web3.account, patient_address).transact({'from': self.web3.account})
+                receipt = self.web3.eth.wait_for_transaction_receipt(tx_hash)
                 self.TABLE1.insert('', 'end', values=(ipfs_hash, file_name))
                 self.TABLE2.insert('', 'end', values=(ipfs_hash, file_name))
                 tk.messagebox.showinfo('Success', 'File uploaded successfully')

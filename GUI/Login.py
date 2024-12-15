@@ -8,6 +8,7 @@ from hexbytes import HexBytes
 import Register as rg
 import Patient as pt
 import Doctor as dt
+import Audit as ad
 
 class LoginFrame(ctk.CTkFrame):
     def __init__(self, parent, controller):
@@ -47,6 +48,9 @@ class LoginFrame(ctk.CTkFrame):
         self.BUTTON19.pack(side="left")
 
         self.web3 = self.controller.web3
+        self.doctor_contract = self.controller.doctor_contract
+        self.patient_contract = self.controller.patient_contract
+        self.audit_contract = self.controller.audit_contract
         
     def login(self):
         address = self.ENTRY9.get()
@@ -87,19 +91,25 @@ class LoginFrame(ctk.CTkFrame):
             recovered_address = self.web3.eth.account.recover_message(signable_message, signature=signature)
             if recovered_address.lower() == address.lower():
                 self.web3.account = self.web3.to_checksum_address(address.lower())
-                doctor = self.controller.doctor_contract.functions.isDoctorRegistered(self.web3.account).call()
+                doctor = self.doctor_contract.functions.isDoctorRegistered(self.web3.account).call()
                 if doctor:
                     self.controller.frames[dt.DoctorFrame].update_doctor_frame()
                     self.controller.show_main_frame(dt.DoctorFrame)
                     return
 
-                patient = self.controller.patient_contract.functions.isPatientRegistered(self.web3.account).call()
+                patient = self.patient_contract.functions.isPatientRegistered(self.web3.account).call()
                 if patient:
                     self.controller.frames[pt.PatientFrame].update_patient_frame()
                     self.controller.show_main_frame(pt.PatientFrame)
                     return
-                    
-                # If not registered as either
+                
+                audit = self.audit_contract.functions.isAuditor().call({'from': self.web3.account})
+                if audit:
+                    self.controller.frames[ad.AuditFrame].refresh_auditors()
+                    self.controller.frames[ad.AuditFrame].refresh_logs()
+                    self.controller.show_main_frame(ad.AuditFrame)
+                    return
+                
                 tk.messagebox.showerror('Error', "Account not registered. Please register first.")
                 self.controller.show_main_frame(rg.RegisterFrame)
             else:
