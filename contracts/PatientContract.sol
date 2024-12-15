@@ -150,6 +150,11 @@ contract PatientContract is ReentrancyGuard {
         );
     }
     
+    function getOwnMedicalFiles() internal view returns (MedicalFile[] memory) {
+        require(patients[msg.sender].isRegistered, "Patient not registered");
+        return patientMedicalFiles[msg.sender];
+    }
+
     // Get Medical Files
     function getMedicalFiles(address _patientAddress) 
         external 
