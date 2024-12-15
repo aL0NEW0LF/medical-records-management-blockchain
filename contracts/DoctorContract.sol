@@ -20,12 +20,17 @@ contract DoctorContract is ReentrancyGuard {
         bool isRegistered;
     }
 
+    struct MedicalFile {
+        string ipfsHash;
+        string name;
+    }
+
     // Patient Contract Reference
     PatientContract public patientContract;
     
     // Mappings
     mapping(address => Doctor) public doctors;
-    mapping(address => string[]) public doctorMedicalFiles;
+    mapping(address => MedicalFile[]) public doctorMedicalFiles;
     
     // Counters
     Counters.Counter private doctorCounter;
@@ -89,7 +94,10 @@ contract DoctorContract is ReentrancyGuard {
         patientContract.addMedicalFile(_ipfsHash, name);
         
         // Track doctor's uploaded files
-        doctorMedicalFiles[msg.sender].push(_ipfsHash);
+        doctorMedicalFiles[msg.sender].push(MedicalFile({
+            ipfsHash: _ipfsHash,
+            name: name
+        }));
         
         emit MedicalFileUploaded(msg.sender, _patientAddress, _ipfsHash);
     }
@@ -123,11 +131,26 @@ contract DoctorContract is ReentrancyGuard {
         return patientContract.getMedicalFiles(_patientAddress);
     }
 
+    function deleteOwnMedicalFile(string memory _ipfsHash) external nonReentrant {
+        require(doctors[msg.sender].isRegistered, "Doctor not registered");
+        
+        MedicalFile[] storage files = doctorMedicalFiles[msg.sender];
+        for (uint i = 0; i < files.length; i++) {
+            if (keccak256(abi.encodePacked(files[i].ipfsHash)) == keccak256(abi.encodePacked(_ipfsHash))) {
+                for (uint j = i; j < files.length - 1; j++) {
+                    files[j] = files[j + 1];
+                }
+                files.pop();
+                break;
+            }
+        }
+    }
+
     // Get Doctor's Uploaded Medical Files
     function getDoctorMedicalFiles() 
         external 
         view 
-        returns (string[] memory) 
+        returns (MedicalFile[] memory) 
     {
         return doctorMedicalFiles[msg.sender];
     }
