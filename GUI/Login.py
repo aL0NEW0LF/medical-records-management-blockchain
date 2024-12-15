@@ -1,14 +1,13 @@
 import customtkinter as ctk
 import tkinter as tk
 from PIL import Image
-from web3 import Web3
-import dotenv
 import random
 import json
-import os
 from eth_account.messages import encode_defunct
 from hexbytes import HexBytes
 import Register as rg
+import Patient as pt
+
 class LoginFrame(ctk.CTkFrame):
     def __init__(self, parent, controller):
         self.controller = controller
@@ -45,11 +44,17 @@ class LoginFrame(ctk.CTkFrame):
         self.LABEL18.pack(side="left")
         self.BUTTON19 = ctk.CTkButton(master=self.FRAME17, text="Sign Up", width=70, fg_color="transparent", hover=False, height=0, text_color=("#000000", "#FFFFFF"), command=lambda:self.controller.show_main_frame(rg.RegisterFrame))
         self.BUTTON19.pack(side="left")
-    
+
+        self.web3 = self.controller.web3
+        
     def login(self):
         address = self.ENTRY9.get()
+        if not self.web3.is_address(address):
+            tk.messagebox.showerror('Error', "Invalid address. Please enter a valid Ethereum address.")
+            return
         nonce = random.randint(1000000, 99999999999)
         message = f"Login with nonce: {nonce}"
+        print(message)
         signable_message = encode_defunct(text=message)
         dialog = ctk.CTkInputDialog(text=f"Please sign this message with your wallet:\n{message}", title="Sign Message", button_text_color=("gray98", "#FFFFFF"), button_fg_color=("#8651ff", "#8651ff"))
         signature = dialog.get_input()
@@ -61,16 +66,29 @@ class LoginFrame(ctk.CTkFrame):
             return
         
         try:
-            dotenv.load_dotenv()
-            w3 = Web3(Web3.HTTPProvider(os.getenv("RPC_URL")))
-            recovered_address = w3.eth.account.recover_message(signable_message, signature=signature)
+            recovered_address = self.web3.eth.account.recover_message(signable_message, signature=signature)
             if recovered_address.lower() == address.lower():
-                print("Login successful!")
-                
+                self.web3.account = self.web3.to_checksum_address(address.lower())
+                doctor = self.controller.doctor_contract.functions.isDoctorRegistered(self.web3.account).call()
+                if doctor:
+                    self.update_doctor_frame()
+                    # self.controller.show_main_frame(dt.DoctorFrame)
+                    return
+
+                patient = self.controller.patient_contract.functions.isPatientRegistered(self.web3.account).call()
+                if patient:
+                    self.controller.frames[pt.PatientFrame].update_patient_frame()
+                    self.controller.show_main_frame(pt.PatientFrame)
+                    return
+                    
+                # If not registered as either
+                tk.messagebox.showerror('Error', "Account not registered. Please register first.")
+                self.controller.show_main_frame(rg.RegisterFrame)
             else:
                 tk.messagebox.showerror('Python Error', "Login failed. Please try again.")
         except ValueError as e:
             tk.messagebox.showerror('Python Error', str(e))
             return
 
-            
+    def update_doctor_frame(self):
+        pass
