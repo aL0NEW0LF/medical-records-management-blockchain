@@ -167,7 +167,7 @@ class PatientFrame(ctk.CTkFrame):
                     file_content = file.read()
                     response = self.controller.ipfs_client.add_bytes(file_content)
                     ipfs_hash = response
-                    tx_hash = self.patient_contract.functions.addMedicalFile(ipfs_hash, file_name).transact({'from': self.web3.account})
+                    tx_hash = self.patient_contract.functions.addMedicalFile(ipfs_hash, file_name, self.web3.account).transact({'from': self.web3.account})
                     self.web3.eth.wait_for_transaction_receipt(tx_hash)
                     self.TABLE1.insert('', 'end', values=(ipfs_hash, file_name))
                     
@@ -204,7 +204,7 @@ class PatientFrame(ctk.CTkFrame):
             if not self.web3.is_address(address):
                 tk.messagebox.showerror('Error', "Invalid address. Please enter a valid Ethereum address.")
                 return
-            tx_hash = self.patient_contract.functions.grantDoctorAccess(address).transact({'from': self.web3.account})
+            tx_hash = self.patient_contract.functions.grantDoctorAccess(self.web3.to_checksum_address(address.lower())).transact({'from': self.web3.account})
             self.web3.eth.wait_for_transaction_receipt(tx_hash)
             tk.messagebox.showinfo('Success', f"Access granted to {address}")
         except Exception as e:
@@ -217,7 +217,7 @@ class PatientFrame(ctk.CTkFrame):
             if not self.web3.is_address(address):
                 tk.messagebox.showerror('Error', "Invalid address. Please enter a valid Ethereum address.")
                 return
-            tx_hash = self.patient_contract.functions.revokeDoctorAccess(address).transact({'from': self.web3.account})
+            tx_hash = self.patient_contract.functions.revokeDoctorAccess(self.web3.to_checksum_address(address.lower())).transact({'from': self.web3.account})
             self.web3.eth.wait_for_transaction_receipt(tx_hash)
             tk.messagebox.showinfo('Success', f"Access revoked from {address}")
         except Exception as e:
