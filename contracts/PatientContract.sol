@@ -118,9 +118,13 @@ contract PatientContract is ReentrancyGuard {
     function deleteMedicalFile(string memory _ipfsHash) external nonReentrant {
         require(patients[msg.sender].isRegistered, "Patient not registered");
         
-        for (uint i = 0; i < patientMedicalFiles[msg.sender].length; i++) {
-            if (keccak256(abi.encodePacked(patientMedicalFiles[msg.sender][i].ipfsHash)) == keccak256(abi.encodePacked(_ipfsHash))) {
-                delete patientMedicalFiles[msg.sender][i];
+        MedicalFile[] storage files = patientMedicalFiles[msg.sender];
+        for (uint i = 0; i < files.length; i++) {
+            if (keccak256(abi.encodePacked(files[i].ipfsHash)) == keccak256(abi.encodePacked(_ipfsHash))) {
+                for (uint j = i; j < files.length - 1; j++) {
+                    files[j] = files[j + 1];
+                }
+                files.pop();
                 break;
             }
         }
@@ -150,7 +154,7 @@ contract PatientContract is ReentrancyGuard {
         );
     }
     
-    function getOwnMedicalFiles() internal view returns (MedicalFile[] memory) {
+    function getOwnMedicalFiles() external view returns (MedicalFile[] memory) {
         require(patients[msg.sender].isRegistered, "Patient not registered");
         return patientMedicalFiles[msg.sender];
     }
