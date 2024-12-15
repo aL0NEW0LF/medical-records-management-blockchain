@@ -9,6 +9,7 @@ import Login as lg
 import Register as rg
 import Patient as pt
 import Doctor as dt
+import Audit as at
 import ipfshttpclient
 
 
@@ -28,6 +29,7 @@ class App(ctk.CTk):
             self.web3 = Web3(Web3.HTTPProvider(os.getenv("RPC_URL")))
             self.doctor_contract = self.load_doctor_contract()
             self.patient_contract = self.load_patient_contract()
+            self.audit_contract = self.load_audit_contract()
             self.ipfs_client = ipfshttpclient.connect(os.getenv("IPFS_URL"))
         except Exception as e:
             tk.messagebox.showerror('Python Error', str(e))
@@ -39,7 +41,7 @@ class App(ctk.CTk):
         
         self.frames = {}
         
-        for F in [lg.LoginFrame, rg.RegisterFrame, pt.PatientFrame, dt.DoctorFrame]:
+        for F in [lg.LoginFrame, rg.RegisterFrame, pt.PatientFrame, dt.DoctorFrame, at.AuditFrame]:
             frame = F(container, self)
             self.frames[F] = frame
             frame.pack(fill="both", expand=True)
