@@ -23,7 +23,7 @@ class App(ctk.CTk):
             self.web3 = Web3(Web3.HTTPProvider(os.getenv("RPC_URL")))
             self.doctor_contract = self.load_doctor_contract()
             self.patient_contract = self.load_patient_contract()
-            self.ipfs_client = ipfshttpclient.connect("/ip4/127.0.0.1/tcp/5001") # os.getenv("IPFS_URL"))
+            self.ipfs_client = ipfshttpclient.connect(os.getenv("IPFS_URL"))
         except Exception as e:
             tk.messagebox.showerror('Python Error', str(e))
             return
