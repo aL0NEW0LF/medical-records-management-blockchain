@@ -160,14 +160,14 @@ contract PatientContract is ReentrancyGuard {
     }
 
     // Get Medical Files
-    function getMedicalFiles(address _patientAddress) 
+    function getMedicalFiles(address _patientAddress, address _doctorAddress) 
         external 
         view 
         returns (MedicalFile[] memory)
     {
-        require(patients[msg.sender].isRegistered, "Patient not registered");
+        require(patients[_patientAddress].isRegistered, "Patient not registered");
         require(
-            patientDoctorAccess[_patientAddress][msg.sender].hasAccess, 
+            patientDoctorAccess[_patientAddress][_doctorAddress].hasAccess, 
             "No access to patient medical files"
         );
         return patientMedicalFiles[_patientAddress];

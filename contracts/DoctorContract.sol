@@ -128,7 +128,7 @@ contract DoctorContract is ReentrancyGuard {
             "No access to patient"
         );
 
-        return patientContract.getMedicalFiles(_patientAddress);
+        return patientContract.getMedicalFiles(_patientAddress, msg.sender);
     }
 
     function deleteOwnMedicalFile(string memory _ipfsHash) external nonReentrant {
