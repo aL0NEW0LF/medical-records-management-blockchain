@@ -5,6 +5,10 @@ from web3 import Web3
 import Login as lg
 import re
 from datetime import datetime
+from eth_account.messages import encode_defunct
+from hexbytes import HexBytes
+import json
+import random
 
 class RegisterFrame(ctk.CTkFrame):
     def __init__(self, parent, controller):
@@ -191,6 +195,49 @@ class RegisterFrame(ctk.CTkFrame):
         
         return True
     
+    def get_signature(self, address):
+        nonce = random.randint(1000000, 99999999999)
+        signable_message = encode_defunct(text=str(nonce))
+        dialog = ctk.CTkToplevel()
+        dialog.title("Sign Message")
+        
+        message_label = ctk.CTkLabel(dialog, text="Please sign this message with your wallet:")
+        message_label.pack(padx=20, pady=(20, 0))
+        
+        text_widget = ctk.CTkTextbox(dialog, height=50, width=300)
+        text_widget.insert("1.0", str(nonce))
+        text_widget.configure(state="disabled")
+        text_widget.pack(padx=20, pady=(0, 20))
+        
+        entry = ctk.CTkEntry(dialog, width=300)
+        entry.pack(padx=20, pady=(0, 20))
+        
+        button = ctk.CTkButton(dialog, text="OK", fg_color=("#8651ff", "#8651ff"),
+                            text_color=("gray98", "#FFFFFF"))
+        button.pack(padx=20, pady=(0, 20))
+        
+        signature = None
+        def on_ok():
+            nonlocal signature
+            signature = entry.get()
+            dialog.destroy()
+        
+        button.configure(command=on_ok)
+        dialog.wait_window()
+        
+        try:
+            signature = HexBytes(json.loads(signature)["sig"])
+            recovered_address = self.web3.eth.account.recover_message(signable_message, signature=signature)
+            
+            if recovered_address.lower() != address.lower():
+                tk.messagebox.showerror('Error', "Signature verification failed")
+                return None
+                
+            return recovered_address
+        except (json.JSONDecodeError, ValueError) as e:
+            tk.messagebox.showerror('Python Error', str(e))
+            return None
+    
     def get_doctor_unsigned_tx(self, address, name, dob, phone, gender, specialization, license):
         try:
             checksum_address = self.web3.to_checksum_address(address.lower())
@@ -231,17 +278,14 @@ class RegisterFrame(ctk.CTkFrame):
         if license == "" or not license.isdigit():
             tk.messagebox.showerror("Error", "Please enter a valid license number")
             return
-        
+        recovered_address = self.get_signature(address)
+        if not recovered_address:
+            return
         raw_tx = self.get_doctor_unsigned_tx(address, "Dr. "+name, dob, phone, gender, specialization, license)
-        
-        dialog = ctk.CTkInputDialog(text="Please Enter your private key to sign the transaction", title="Private Key", button_text_color=("gray98", "#FFFFFF"), button_fg_color=("#8651ff", "#8651ff"))
-        private_key = dialog.get_input()
-        
-        if self.validate_private_key(private_key) == False:
+        if raw_tx is None:
             return
         try:
-            signed_tx = self.web3.eth.account.sign_transaction(raw_tx, private_key)
-            tx_hash = self.web3.eth.send_raw_transaction(signed_tx.raw_transaction)
+            tx_hash = self.web3.eth.send_transaction(raw_tx)
             receipt = self.web3.eth.wait_for_transaction_receipt(tx_hash)
             if receipt['status'] == 1:
                 tk.messagebox.showinfo("Success", "Doctor registration successful!")
@@ -287,18 +331,14 @@ class RegisterFrame(ctk.CTkFrame):
         valid = self.verify_credentials(address, name, dob, phone, gender)
         if valid == False:
             return
-        
-        raw_tx = self.get_patient_unsigned_tx(address, name, dob, phone, gender)
-        
-        dialog = ctk.CTkInputDialog(text="Please Enter your private key to sign the transaction", title="Private Key", button_text_color=("gray98", "#FFFFFF"), button_fg_color=("#8651ff", "#8651ff"))
-        private_key = dialog.get_input()
-        
-        if self.validate_private_key(private_key) == False:
+        recovered_address = self.get_signature(address)
+        if not recovered_address:
             return
-        
+        raw_tx = self.get_patient_unsigned_tx(address, name, dob, phone, gender)
+        if raw_tx == None:
+            return
         try:
-            signed_tx = self.web3.eth.account.sign_transaction(raw_tx, private_key)
-            tx_hash = self.web3.eth.send_raw_transaction(signed_tx.raw_transaction)
+            tx_hash = self.web3.eth.send_transaction(raw_tx)
             receipt = self.web3.eth.wait_for_transaction_receipt(tx_hash)
             if receipt['status'] == 1:
                 tk.messagebox.showinfo("Success", "Patient registration successful!")
@@ -308,7 +348,6 @@ class RegisterFrame(ctk.CTkFrame):
                 self.controller.show_main_frame(lg.LoginFrame)
             else:
                 tk.messagebox.showerror("Error", "Transaction failed")
-                
         except Exception as e:
             print(e)
             tk.messagebox.showerror("Error", f"Failed to broadcast: {str(e)}")
