@@ -293,6 +293,13 @@ class RegisterFrame(ctk.CTkFrame):
                 tx_hash = self.audit_contract.functions.logDoctorRegistration(address, name).transact({'from': address})
                 receipt = self.web3.eth.wait_for_transaction_receipt(tx_hash)
                 self.controller.show_main_frame(lg.LoginFrame)
+                self.ENTRY1.delete(0, tk.END)
+                self.ENTRY2.delete(0, tk.END)
+                self.ENTRY3.delete(0, tk.END)
+                self.ENTRY4.delete(0, tk.END)
+                self.COMBOBOX1.set("")
+                self.ENTRY5.delete(0, tk.END)
+                self.ENTRY6.delete(0, tk.END)
             else:
                 tk.messagebox.showerror("Error", "Transaction failed")
         except Exception as e:
@@ -346,6 +353,11 @@ class RegisterFrame(ctk.CTkFrame):
                 tx_hash = self.audit_contract.functions.logPatientRegistration(address, name).transact({'from': address})
                 receipt = self.web3.eth.wait_for_transaction_receipt(tx_hash)
                 self.controller.show_main_frame(lg.LoginFrame)
+                self.ENTRY7.delete(0, tk.END)
+                self.ENTRY8.delete(0, tk.END)
+                self.ENTRY9.delete(0, tk.END)
+                self.ENTRY10.delete(0, tk.END)
+                self.COMBOBOX2.set("")
             else:
                 tk.messagebox.showerror("Error", "Transaction failed")
         except Exception as e:
