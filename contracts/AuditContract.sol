@@ -47,7 +47,7 @@ contract AuditContract {
 
     function addAuditor(address _auditor) external {
         require(isAuditor(), "Not an auditor");
-        require(auditors[_auditor], "Account is already registered as auditor");
+        require(!auditors[_auditor], "Account is already registered as auditor");
         require(!roleContract.isUserAssigned(_auditor), "Account already registered as another role");
         auditors[_auditor] = true;
         registeredAuditors.push(_auditor);
