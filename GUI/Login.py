@@ -101,17 +101,20 @@ class LoginFrame(ctk.CTkFrame):
                     self.controller.frames[ad.AuditFrame].refresh_auditors()
                     self.controller.frames[ad.AuditFrame].refresh_logs()
                     self.controller.frames[ad.AuditFrame].ENTRY1.delete(0, tk.END)
+                    self.ENTRY9.delete(0, tk.END)
                     self.controller.show_main_frame(ad.AuditFrame)
                     return
                 elif role == 2:
                     self.controller.frames[dt.DoctorFrame].update_doctor_frame()
                     self.controller.frames[ad.AuditFrame].ENTRY1.delete(0, tk.END)
+                    self.ENTRY9.delete(0, tk.END)
                     self.controller.show_main_frame(dt.DoctorFrame)
                     return
                 elif role == 3:
                     self.controller.frames[pt.PatientFrame].update_patient_frame()
                     self.controller.frames[ad.AuditFrame].grant_entry.delete(0, tk.END)
                     self.controller.frames[ad.AuditFrame].revoke_entry.delete(0, tk.END)
+                    self.ENTRY9.delete(0, tk.END)
                     self.controller.show_main_frame(pt.PatientFrame)
                     return
                 
