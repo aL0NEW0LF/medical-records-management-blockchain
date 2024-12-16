@@ -51,6 +51,7 @@ class LoginFrame(ctk.CTkFrame):
         self.doctor_contract = self.controller.doctor_contract
         self.patient_contract = self.controller.patient_contract
         self.audit_contract = self.controller.audit_contract
+        self.role_contract = self.controller.role_contract
         
     def login(self):
         address = self.ENTRY9.get()
@@ -91,23 +92,23 @@ class LoginFrame(ctk.CTkFrame):
             recovered_address = self.web3.eth.account.recover_message(signable_message, signature=signature)
             if recovered_address.lower() == address.lower():
                 self.web3.account = self.web3.to_checksum_address(address.lower())
-                doctor = self.doctor_contract.functions.isDoctorRegistered(self.web3.account).call()
-                if doctor:
-                    self.controller.frames[dt.DoctorFrame].update_doctor_frame()
-                    self.controller.show_main_frame(dt.DoctorFrame)
+                role = self.role_contract.functions.checkRole(self.web3.account).call()
+                if role == 0:
+                    tk.messagebox.showerror('Error', "Account not registered. Please register first.")
+                    self.controller.show_main_frame(rg.RegisterFrame)
                     return
-
-                patient = self.patient_contract.functions.isPatientRegistered(self.web3.account).call()
-                if patient:
-                    self.controller.frames[pt.PatientFrame].update_patient_frame()
-                    self.controller.show_main_frame(pt.PatientFrame)
-                    return
-                
-                audit = self.audit_contract.functions.isAuditor().call({'from': self.web3.account})
-                if audit:
+                elif role == 1:
                     self.controller.frames[ad.AuditFrame].refresh_auditors()
                     self.controller.frames[ad.AuditFrame].refresh_logs()
                     self.controller.show_main_frame(ad.AuditFrame)
+                    return
+                elif role == 2:
+                    self.controller.frames[dt.DoctorFrame].update_doctor_frame()
+                    self.controller.show_main_frame(dt.DoctorFrame)
+                    return
+                elif role == 3:
+                    self.controller.frames[pt.PatientFrame].update_patient_frame()
+                    self.controller.show_main_frame(pt.PatientFrame)
                     return
                 
                 tk.messagebox.showerror('Error', "Account not registered. Please register first.")
