@@ -69,7 +69,7 @@ class AuditFrame(ctk.CTkFrame):
         self.FRAME3.grid_columnconfigure(1, weight=1)  # Button takes 1/4 of space
         self.ENTRY1 = ctk.CTkEntry(master=self.FRAME3, placeholder_text="0x"+40*"0")
         self.ENTRY1.grid(row=0, column=0, padx=(0, 10), sticky="ew")
-        self.BUTTON3 = ctk.CTkButton(master=self.FRAME3, text="Add Auditor", fg_color="#8651ff", hover_color="#6940c9")
+        self.BUTTON3 = ctk.CTkButton(master=self.FRAME3, text="Add Auditor", fg_color="#8651ff", hover_color="#6940c9", command=self.add_auditor)
         self.BUTTON3.grid(row=0, column=1, sticky="ew")
         self.SCROLLABLE_FRAME2 = ctk.CTkScrollableFrame(master=self.FRAME2)
         self.SCROLLABLE_FRAME2.pack(pady=10, padx=20, fill="both", expand=True)
@@ -115,9 +115,9 @@ class AuditFrame(ctk.CTkFrame):
             tx_hash = self.audit_contract.functions.addAuditor(address).transact({'from': self.web3.account})
             receipt = self.web3.eth.wait_for_transaction_receipt(tx_hash)
             if receipt.status == 0:
-                self.refresh_auditors()
                 tk.messagebox.showerror('Error', "Transaction failed.")
                 return
+            self.refresh_auditors()
         except Exception as e:
             tk.messagebox.showerror('Python Error', str(e))
             return
