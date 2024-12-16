@@ -30,6 +30,7 @@ class App(ctk.CTk):
             self.doctor_contract = self.load_doctor_contract()
             self.patient_contract = self.load_patient_contract()
             self.audit_contract = self.load_audit_contract()
+            self.role_contract = self.load_role_contract()
             self.ipfs_client = ipfshttpclient.connect(os.getenv("IPFS_URL"))
         except Exception as e:
             tk.messagebox.showerror('Python Error', str(e))
@@ -63,6 +64,11 @@ class App(ctk.CTk):
     def load_audit_contract(self):
         contract_abi = os.getenv("AUDIT_CONTRACT_ABI")
         contract_address = self.web3.to_checksum_address(os.getenv("AUDIT_CONTRACT_ADDRESS"))
+        return self.web3.eth.contract(address=contract_address, abi=contract_abi)
+    
+    def load_role_contract(self):
+        contract_abi = os.getenv("ROLE_CONTRACT_ABI")
+        contract_address = self.web3.to_checksum_address(os.getenv("ROLE_CONTRACT_ADDRESS"))
         return self.web3.eth.contract(address=contract_address, abi=contract_abi)
     
     def show_main_frame(self, cont):
