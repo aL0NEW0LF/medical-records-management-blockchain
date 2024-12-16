@@ -3,6 +3,7 @@ pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import "./RoleContract.sol";
 
 contract PatientContract is ReentrancyGuard {
     using Counters for Counters.Counter;
@@ -36,12 +37,19 @@ contract PatientContract is ReentrancyGuard {
     // Counters
     Counters.Counter private patientCounter;
     
+    // Role Contract
+    RoleContract public roleContract;
+
     // Events
     event PatientRegistered(address indexed patientAddress, string fullName);
     event DoctorAccessGranted(address indexed patientAddress, address indexed doctorAddress);
     event DoctorAccessRevoked(address indexed patientAddress, address indexed doctorAddress);
     event MedicalFileAdded(address indexed patientAddress, string ipfsHash);
     
+    constructor(address _roleContractAddress) {
+        roleContract = RoleContract(_roleContractAddress);
+    }
+
     // Patient Registration
     function registerPatient(
         string memory _fullName, 
@@ -50,7 +58,8 @@ contract PatientContract is ReentrancyGuard {
         string memory _gender
     ) external nonReentrant {
         require(!patients[msg.sender].isRegistered, "Patient already registered");
-        
+        require(!roleContract.isUserAssigned(msg.sender), "Account already registered as another role");
+
         patients[msg.sender] = Patient({
             patientAddress: msg.sender,
             fullName: _fullName,
@@ -59,7 +68,8 @@ contract PatientContract is ReentrancyGuard {
             gender: _gender,
             isRegistered: true
         });
-        
+
+        roleContract.assignRole(msg.sender, 3);
         patientCounter.increment();
         
         emit PatientRegistered(msg.sender, _fullName);

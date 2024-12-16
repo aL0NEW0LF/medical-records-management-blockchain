@@ -2,6 +2,7 @@
 pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/utils/Counters.sol";
+import "./RoleContract.sol";
 
 contract AuditContract {
     using Counters for Counters.Counter;
@@ -21,6 +22,9 @@ contract AuditContract {
     mapping(uint256 => AuditEvent) public auditTrail;
     Counters.Counter private eventCounter;
     
+    // Role Contract
+    RoleContract public roleContract;
+
     // Events
     event EventLogged(
         uint256 indexed eventId, 
@@ -29,9 +33,12 @@ contract AuditContract {
         string description
     );
     
-    constructor() {
+    constructor(address _roleContractAddress) {
+        roleContract = RoleContract(_roleContractAddress);
+        require(!roleContract.isUserAssigned(msg.sender), "Account already registered as another role");
         auditors[msg.sender] = true;
         registeredAuditors.push(msg.sender);
+        roleContract.assignRole(msg.sender, 1);
     }
 
     function isAuditor() public view returns (bool) {
@@ -40,8 +47,11 @@ contract AuditContract {
 
     function addAuditor(address _auditor) external {
         require(isAuditor(), "Not an auditor");
+        require(auditors[_auditor], "Account is already registered as auditor");
+        require(!roleContract.isUserAssigned(_auditor), "Account already registered as another role");
         auditors[_auditor] = true;
         registeredAuditors.push(_auditor);
+        roleContract.assignRole(_auditor, 1);
     }
 
     function getAuditors() external view returns (address[] memory) {
